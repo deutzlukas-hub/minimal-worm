@@ -55,9 +55,9 @@ def sweep_a_b(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--a', 
-        type=float, nargs=3, default = [-2, 3, 0.5])    
+        type=float, nargs=3, default = [-2, 3, 0.2])    
     sweep_parser.add_argument('--b', 
-        type=float, nargs=3, default = [-3, 0, 0.5])    
+        type=float, nargs=3, default = [-3, 0, 0.2])    
 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
@@ -95,11 +95,15 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(model_param, grid_param)
 
+    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot', 'D_I_.dot', 'W_dot', 'V_dot', 'V'] 
+    CS_keys = ['k', 'sig']
+
     # Run sweep
     Sweeper.run_sweep(
         sweep_param.worker, 
         PG, 
         UndulationExperiment.stw_control_sequence, 
+        FS_keys,
         log_dir, 
         sim_dir, 
         sweep_param.overwrite, 
@@ -111,11 +115,7 @@ def sweep_a_b(argv):
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
 
     if sweep_param.pool:
-    
-        FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot',
-            'D_I_.dot', 'W_dot', 'V_dot', 'V'] 
-        CS_keys = ['k', 'sgi']
-        
+
         # Run sweep
         filename = Path(
             f'raw_data_'
@@ -126,10 +126,8 @@ def sweep_a_b(argv):
     
         h5_filepath = sweep_dir / filename
     
-        Saver.save_data(h5_filepath, PG, sim_dir, FS_keys, CS_keys)
-
-        print(f'Pooled and saved simulation results to {h5_filepath}')
-
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys, CS_keys)
+        
     return
 
 if __name__ == '__main__':
