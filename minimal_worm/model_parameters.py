@@ -157,7 +157,7 @@ class ModelParameter():
         :param a_T: Torsional shear correction factor
         :param phi: Cross-section radius shape function  
         '''
-               
+                           
         for k in ModelParameter.attr_keys:
             setattr(self, k, getattr(param, k))
                                                 

@@ -5,17 +5,19 @@ Created on 13 Jun 2023
 '''
 
 # Build-in imports
-from os.path import isfile, join
+from typing import Dict, Tuple
 from abc import ABC 
-import pickle
-from argparse import BooleanOptionalAction
+from argparse import BooleanOptionalAction, Namespace
+from logging import Logger
 
 #Third party
 from fenics import Expression
 import numpy as np
+from tqdm import tqdm
 
 # Local imports
-from minimal_worm import Worm 
+from minimal_worm import Worm
+from minimal_worm import FrameSequence
 from minimal_worm import ModelParameter, parameter_parser
 from mp_progress_logger import FWException
             
@@ -128,12 +130,12 @@ class Experiment(ABC):
         return sm_off
 
                                                   
-def simulate_experiment(worm,
-                        param,
-                        CS,
-                        F0 = None,
-                        pbar = None,
-                        logger = None,
+def simulate_experiment(worm: Worm,
+                        param: Namespace,
+                        CS: Dict,
+                        F0: Tuple[FrameSequence, None] = None,
+                        pbar: Tuple[tqdm, None] = None,
+                        logger = Tuple[Logger, None],
                         ):            
     '''
     Simulate experiments defined by control sequence

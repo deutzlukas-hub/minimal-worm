@@ -5,6 +5,7 @@ Created on 14 Jun 2023
 '''
 
 #Third-party
+from argparse import Namespace
 import numpy as np
 from fenics import Expression, Constant
 
@@ -42,7 +43,11 @@ class UndulationExperiment(Experiment):
         :param worm (CosseratRod): worm object
         :param param (dict): param dictionary
         '''
-                        
+        if isinstance(param, dict):
+            param_dict = param
+            param = Namespace()
+            param.__dict__.update(param_dict)
+           
         # Kinematic param
         lam = param.lam
         q = 2*np.pi / lam
