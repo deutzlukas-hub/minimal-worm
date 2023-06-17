@@ -92,7 +92,7 @@ class Sweeper():
         if not overwrite:    
             if isfile(filepath):
                 logger.info(f'Task {task_number}: File already exists')                                    
-                output = pickle.load(open(filepath), 'rb')
+                output = pickle.load(open(filepath, 'rb'))
                 FS = output['FS']
                             
                 exit_status = output['exit_status'] 
@@ -101,7 +101,7 @@ class Sweeper():
                     raise FWException(FS.pic, param['T'], param['dt'], FS.times[-1])
                 
                 result = {}
-                result['pic'] = FS.pic
+                result['pic'] = None
                 
                 return result
              
@@ -123,7 +123,7 @@ class Sweeper():
                     
         # Regardless if the simulation has finished or failed, simulation results
         # up to this point are saved to file         
-        Sweeper.save_output(filepath, FS, CS, MP, param, exit_status, save_keys)                        
+        Sweeper.save_output(filepath, FS, CS, MP, param, exit_status)                        
         logger.info(f'Task {task_number}: Saved file to {filepath}.')         
                     
         # If the simulation has failed then we reraise the exception
@@ -137,7 +137,7 @@ class Sweeper():
         # If simulation has finished succesfully then we return the relevant results 
         # for the logger
         result = {}    
-        result['pic'] = FS.pic
+        result['pic'] = None
         
         return result
 
@@ -185,15 +185,17 @@ class Sweeper():
             FK,
             str(sim_dir),                 
             overwrite = overwrite)
+
+        PGL.close()
         
-        return PGL
+        return 
                 
     @staticmethod
     def save_sweep_to_h5(
             PG: ParameterGrid,                
             h5_filepath: Path,
             sim_dir: Path,
-            FS_keys = ['x', 'k'], 
+            FS_keys = ['r', 'theta', 'sig','k'], 
             CS_keys = ['sig', 'k']):    
         
         '''

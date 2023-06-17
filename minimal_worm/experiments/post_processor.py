@@ -232,8 +232,8 @@ class PostProcessor(object):
         return powers
                                                                                            
     @staticmethod
-    def comp_energies_from_power(
-            powers: np.ndarray, 
+    def comp_energy_from_power(
+            power: np.ndarray, 
             t: np.ndarray, 
             t_start: Tuple[float, None] = None, 
             t_end: Tuple[float, None] = None):
@@ -255,14 +255,12 @@ class PostProcessor(object):
             t = t[idx_arr]
                                         
         dt = t[1] - t[0]                                           
-        energies = {}
+               
+        energy = cumulative_trapezoid(power, dx=dt, initial=0)
                           
-        for key, power in powers.items():
-                     
-            name = PostProcessor.engery_names_from_power[key]                        
-            energies[name] = cumulative_trapezoid(power, dx=dt, initial=0)       
+        return energy
+                          
        
-        return energies
        
 
         

@@ -68,9 +68,9 @@ class Saver(ABC):
             if not exit_status:
                 continue
                                 
-                pad_arr = np.zeros(shape)[:] = np.nan                                
-                pad_arr[:arr.size(0)] = arr
-                pad_arr_list.append(pad_arr)
+            pad_arr = np.zeros(shape)[:] = np.nan                                
+            pad_arr[:arr.size(0)] = arr
+            pad_arr_list.append(pad_arr)
             
         return pad_arr_list
 
@@ -110,13 +110,13 @@ class Saver(ABC):
                 for key in CS_keys: 
                     output['CS'][key].append(getattr(data['CS'], key))
 
-            output['t'].append(data['FS'].times)            
+            output['t'].append(data['FS'].t)            
             output['exit_status'].append(data['exit_status'])
 
         # If all simulation succeeded we only
         # need to save timestamps once        
-        if np.all(output['exit_status']):
-            output['t'] = data['FS'].times
+        if not np.any(output['exit_status']):
+            output['t'] = data['FS'].t
                                                                 
         return output        
     
@@ -145,6 +145,7 @@ class Saver(ABC):
         # Create
         h5 = h5py.File(filepath, 'w')
         h5.attrs['grid_filename'] = PG.filename + '.json'       
+        h5.attrs['shape'] = PG.shape
 
         # Load output from pickled simulation files        
         output = Saver.pool_data(PG, sim_dir, FS_keys, CS_keys)
@@ -154,10 +155,11 @@ class Saver(ABC):
                 
         FS_grp = h5.create_group('FS')
 
+        needs_padding = False
         # If a simulation has failed than we need to pad its 
         # data arrays with nans so that it has the same shape
-        # as the other simulations
-        if np.all(np.logical_not(exit_status_arr)):
+        # as the other simulation        
+        if np.any(exit_status_arr):
             
             needs_padding = True
                     
@@ -173,7 +175,7 @@ class Saver(ABC):
             
             if needs_padding:
                 arr_list = Saver.pad_arrays(n, arr_list, exit_status_arr)            
-            
+                        
             FS_grp.create_dataset(key, data = np.array(arr_list))
             
         CS_grp = h5.create_group('CS')
@@ -183,9 +185,9 @@ class Saver(ABC):
             CS_grp.create_dataset(key, data = np.array(arr))
 
         if needs_padding: 
-            t = Saver.pad_time(n, output['t'], exit_status_arr)
+            output['t'] = Saver.pad_time(n, output['t'], exit_status_arr)
         
-        h5.create_dataset('t', data = t)
+        h5.create_dataset('t', data = output['t'])
         
         return h5
  

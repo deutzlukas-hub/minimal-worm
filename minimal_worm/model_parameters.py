@@ -7,6 +7,7 @@ Created on 14 Jun 2023
 # Built-in
 from fenics import Constant
 from argparse import ArgumentParser, BooleanOptionalAction, Namespace
+import warnings
 # Third-party 
 import numpy as np
 import pint
@@ -160,6 +161,8 @@ class ModelParameter():
                            
         for k in ModelParameter.attr_keys:
             setattr(self, k, getattr(param, k))
+
+        warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
                                                 
         self.S = np.diag([param.a_c * param.p, 
             param.a_c * param.p, 1]) / (param.a * param.g)        
@@ -169,7 +172,9 @@ class ModelParameter():
             param.a_T * param.p]) / param.a                         
         self.B_tilde = param.b * np.diag([1, 1, 
             param.a_T * param.q]) / param.a 
-        
+
+        warnings.filterwarnings("default", category=np.VisibleDeprecationWarning)
+
         return
 
     def to_fenics(self):

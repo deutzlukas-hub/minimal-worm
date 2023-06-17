@@ -10,13 +10,12 @@ from argparse import ArgumentParser, BooleanOptionalAction
 
 # Third-party
 from parameter_scan import ParameterGrid
-from pint import Quantity
 
 # Local imports
 from minimal_worm.experiments import Sweeper, Saver
 from minimal_worm.experiments.undulation import UndulationExperiment
 from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
-
+from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
 
 def default_sweep_parameter():
     '''
@@ -28,6 +27,8 @@ def default_sweep_parameter():
         help = 'Number of processes') 
     parser.add_argument('--pool', action=BooleanOptionalAction, default = True,
         help = 'If true, FrameSequences are pickled to disk') 
+    parser.add_argument('--analyse', action=BooleanOptionalAction, default = True,
+        help = 'If true, analyse pooled raw data')     
     parser.add_argument('--overwrite', action=BooleanOptionalAction, default = False,
         help = 'If true, already existing simulation results are overwritten')
     parser.add_argument('--debug', action=BooleanOptionalAction, default = False,
@@ -55,9 +56,9 @@ def sweep_a_b(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--a', 
-        type=float, nargs=3, default = [-2, 3, 0.2])    
+        type=float, nargs=3, default = [-2, 3, 1.0])    
     sweep_parser.add_argument('--b', 
-        type=float, nargs=3, default = [-3, 0, 0.2])    
+        type=float, nargs=3, default = [-3, 0, 1.0])    
 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
@@ -86,14 +87,8 @@ def sweep_a_b(argv):
         'N': None, 'step': b_step, 'round': 5, 'log': True}
 
     grid_param = {'a': a_param, 'b': b_param}
-
-    # Convert parameter to dictionary?
-    model_param = vars(model_param)
-    for k ,v in model_param.items():
-        if isinstance(v, Quantity):
-            model_param[k] = v.magnitude
     
-    PG = ParameterGrid(model_param, grid_param)
+    PG = ParameterGrid(vars(model_param), grid_param)
 
     FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
 
@@ -111,6 +106,7 @@ def sweep_a_b(argv):
 
     PG_filepath = PG.save(log_dir)
 
+
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
 
     if sweep_param.pool:
@@ -124,9 +120,13 @@ def sweep_a_b(argv):
             f'N={model_param.N}_dt={model_param.dt}.h5')        
     
         h5_filepath = sweep_dir / filename
-    
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys)
         
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys)
+
+    if sweep_param.analyse:
+        assert sweep_param.pool        
+        analyse_a_b(h5_filepath)
+                
     return
 
 if __name__ == '__main__':

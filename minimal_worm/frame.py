@@ -9,26 +9,36 @@ FRAME_KEYS = [
     'd3', # Director 3
     'k', # Generalized curvature vector
     'sig', # Shear/stretch vector
+]
+
+
+VELOCITY_KEYS = [
     'r_t', # Centreline velocity 
     'w', # Angular velocity
     'k_t', # Curvature rate 
-    'sig_t', # Shear/stretch rate
+    'sig_t', # Shear/stretch rate    
+    ]
+
+FORCE_TORQUE_KEYS = [ 
     'f_F', # External fluid force line density
     'l_F', # External fluid torque line density
     'f_M', # Muscle force line density
     'l_M', # Muscle torque line density
     'N', # Internal force resultant
     'M', # Internal torque resultant
+]
+
+POWER_KEYS = [
     'D_F_dot', # Fluid dissipation rate
     'D_I_dot', # Internal dissipation rate   
     'W_dot', # Mechanical muscle power
     'V_dot', # Elastic potential rate 
-    'V' # Elastic potential energy 
-]
-
-FRAME_FS = [
     ]
 
+FRAME_KEYS = FRAME_KEYS + VELOCITY_KEYS
+FRAME_KEYS = FRAME_KEYS + FORCE_TORQUE_KEYS
+FRAME_KEYS = FRAME_KEYS + POWER_KEYS
+FRAME_KEYS.append('V') # Elastic potential energy     
 
 class Frame(object):
     
