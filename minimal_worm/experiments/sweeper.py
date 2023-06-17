@@ -5,7 +5,7 @@ Created on 15 Jun 2023
 '''
 # Built-in
 from os.path import isfile, join
-from typing import Callable, Dict
+from typing import Callable, Dict, List
 from pathlib import Path
 from argparse import Namespace
 import pickle
@@ -66,6 +66,7 @@ class Sweeper():
                                  logger,
                                  task_number,                             
                                  create_CS,
+                                 FK,
                                  sim_dir,  
                                  overwrite  = False, 
                                  save_keys = None,                              
@@ -113,8 +114,7 @@ class Sweeper():
         CS = create_CS(param)
     
         FS, CS, MP, e = simulate_experiment(worm, param_ns, CS, 
-                            pbar = pbar, 
-                            logger = logger)
+            FK = FK, pbar = pbar, logger = logger)
                             
         if e is not None:
             exit_status = 1
@@ -147,6 +147,7 @@ class Sweeper():
             N_worker: int, 
             PG: ParameterGrid, 
             create_CS: Callable,                    
+            FK: List[str],            
             log_dir: Path,
             sim_dir: Path,
             overwrite = False,
@@ -181,6 +182,7 @@ class Sweeper():
         PGL.run_pool(N_worker, 
             Sweeper.wrap_simulate_experiment, 
             create_CS,
+            FK,
             str(sim_dir),                 
             overwrite = overwrite)
         

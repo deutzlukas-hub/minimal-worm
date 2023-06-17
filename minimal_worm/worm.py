@@ -553,7 +553,7 @@ class Worm:
         CS: Dict, 
         F0=None, 
         solver = None,
-        FK = FRAME_KEYS,
+        FK = None,
         pbar=None, 
         logger=None, 
         dt_report=None, 
@@ -565,6 +565,9 @@ class Worm:
         """
 
         self.n = int(T / self.dt) # number of timesteps
+        
+        if FK is None:
+            FK = FRAME_KEYS
         
         self.initialise(
             MP, CS, FK, F0, solver, pbar, logger, dt_report, N_report

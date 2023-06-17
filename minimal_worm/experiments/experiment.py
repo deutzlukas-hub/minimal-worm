@@ -5,7 +5,7 @@ Created on 13 Jun 2023
 '''
 
 # Build-in imports
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from abc import ABC 
 from argparse import BooleanOptionalAction, Namespace
 from logging import Logger
@@ -134,6 +134,7 @@ def simulate_experiment(worm: Worm,
                         param: Namespace,
                         CS: Dict,
                         F0: Tuple[FrameSequence, None] = None,
+                        FK: List[str] = None,
                         pbar: Tuple[tqdm, None] = None,
                         logger = Tuple[Logger, None],
                         ):            
@@ -149,7 +150,7 @@ def simulate_experiment(worm: Worm,
 
     MP = ModelParameter(param)
                         
-    FS, CS, e = worm.solve(param.T, MP, CS, F0, pbar=pbar, 
+    FS, CS, e = worm.solve(param.T, MP, CS, F0, FK=FK, pbar=pbar, 
         logger=logger, dt_report=param.dt_report, N_report=param.N_report) 
                               
     return FS, CS, MP, e
