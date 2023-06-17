@@ -4,6 +4,7 @@ Created on 15 Jun 2023
 @author: amoghasiddhi
 '''
 # Built-in
+from os.path import isfile, join
 from typing import Callable, Dict
 from pathlib import Path
 from argparse import Namespace
@@ -85,10 +86,10 @@ class Sweeper():
     
         param, param_hash = _input[0], _input[1]
         
-        filepath = sim_dir / (param_hash) + '.dat'
+        filepath = join(sim_dir, (param_hash) + '.dat')
                 
         if not overwrite:    
-            if filepath.exists():
+            if isfile(filepath):
                 logger.info(f'Task {task_number}: File already exists')                                    
                 output = pickle.load(open(filepath), 'rb')
                 FS = output['FS']
@@ -104,10 +105,16 @@ class Sweeper():
                 return result
              
         worm = Worm(param['N'], param['dt'], fdo = param['fdo'], quiet=True)
-                        
+        
+        # Experiment 
+        param_ns = Namespace()
+        param_ns.__dict__.update(param)
+        
         CS = create_CS(param)
     
-        FS, CS, MP, e = simulate_experiment(worm, param, CS, pbar, logger, None)
+        FS, CS, MP, e = simulate_experiment(worm, param_ns, CS, 
+                            pbar = pbar, 
+                            logger = logger)
                             
         if e is not None:
             exit_status = 1
@@ -164,7 +171,7 @@ class Sweeper():
         # The logger will log and display
         # the progress and outcome of the simulations
         PGL = FWProgressLogger(PG, 
-            log_dir, 
+            str(log_dir), 
             pbar_to_file = False,                        
             pbar_path = './pbar/pbar.txt', 
             exper_spec = exper_spec,
@@ -174,7 +181,7 @@ class Sweeper():
         PGL.run_pool(N_worker, 
             Sweeper.wrap_simulate_experiment, 
             create_CS,
-            sim_dir,                 
+            str(sim_dir),                 
             overwrite = overwrite)
         
         return PGL
