@@ -1,0 +1,15 @@
+name: minimal-worm
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - fenics
+  - ca-certificates
+  - openssl
+  - pint
+  - matplotlib
+  - tqdm
+  - certifi
+  - scipy
+  - h5py
+prefix: /home/amoghasiddhi/Programs/mamba/envs/minimal-worm
