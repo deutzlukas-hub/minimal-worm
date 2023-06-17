@@ -125,7 +125,7 @@ def sweep_a_b(argv):
     
         h5_filepath = sweep_dir / filename
     
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys, CS_keys)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys)
         
     return
 
