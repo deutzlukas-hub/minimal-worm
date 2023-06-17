@@ -26,6 +26,11 @@ except ModuleNotFoundError:
     pass
 
 
+# Set Fenics LogLevel to Error to
+# avoid logging to mess with progressbar
+from dolfin import set_log_level, LogLevel
+set_log_level(LogLevel.ERROR)
+
 CONTROL_KEYS = ['k', 'sig', 't']
 
 def grad(f):
