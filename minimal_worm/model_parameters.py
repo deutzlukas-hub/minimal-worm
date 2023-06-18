@@ -164,8 +164,6 @@ class ModelParameter():
             if isinstance(v, float):
                 v = pint.Quantity(v, 'dimensionless')            
             setattr(self, k, v)
-
-        warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
                                                 
         self.S = np.diag([param.a_c * param.p, 
             param.a_c * param.p, 1]) / (param.a * param.g)        
@@ -175,8 +173,6 @@ class ModelParameter():
             param.a_T * param.p]) / param.a                         
         self.B_tilde = param.b * np.diag([1, 1, 
             param.a_T * param.q]) / param.a 
-
-        warnings.filterwarnings("default", category=np.VisibleDeprecationWarning)
 
         return
         
