@@ -8,7 +8,7 @@ from typing import Tuple
 
 # Third-party
 import numpy as np
-from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import trapz
 
 class PostProcessor(object):
     '''
@@ -238,8 +238,7 @@ class PostProcessor(object):
             t_start: Tuple[float, None] = None, 
             t_end: Tuple[float, None] = None):
         '''
-        Computes energy which stored as elastic potential energy, dissipated internally or
-        into the fluid and mechanical muscle work done from given powers as function of time
+        Computes energies from power for the given time interval
         
         :param powers (dict): power dictionary 
         :param dt (float): timestep
@@ -256,7 +255,7 @@ class PostProcessor(object):
                                         
         dt = t[1] - t[0]                                           
                
-        energy = cumulative_trapezoid(power, dx=dt, initial=0)
+        energy = trapz(power, dx=dt)
                           
         return energy
                           
