@@ -142,7 +142,7 @@ class ModelParameter():
     '''
     Dimensionless model parameters
     '''
-    attr_keys = ['C', 'D', 'Y', 'D', 'phi']
+    attr_keys = ['C', 'D', 'Y', 'phi']
                                                     
     def __init__(self, param: Namespace):            
         '''        
@@ -160,7 +160,10 @@ class ModelParameter():
         '''
                            
         for k in ModelParameter.attr_keys:
-            setattr(self, k, getattr(param, k))
+            v = getattr(param, k)
+            if isinstance(v, float):
+                v = pint.Quantity(v, 'dimensionless')            
+            setattr(self, k, v)
 
         warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning)
                                                 
@@ -176,21 +179,29 @@ class ModelParameter():
         warnings.filterwarnings("default", category=np.VisibleDeprecationWarning)
 
         return
-
-    def to_fenics(self):
         
-        C = Constant(self.C)
-        D = Constant(self.D)
-        Y = Constant(self.Y)
-        S = Constant(self.S)
-        S_tilde = Constant(self.S_tilde) 
-        B = Constant(self.B)
-        B_tilde = Constant(self.B_tilde) 
+    def to_fenics(self):
+                     
+        C = ModelParameter.to_constant(self.C)
+        D = ModelParameter.to_constant(self.D)
+        Y = ModelParameter.to_constant(self.Y)
+        S = ModelParameter.to_constant(self.S)
+        S_tilde = ModelParameter.to_constant(self.S_tilde)
+        B = ModelParameter.to_constant(self.B)
+        B_tilde = ModelParameter.to_constant(self.B_tilde)
         
         if self.phi is not None:
             S, S_tilde = self.phi**2 * S, self.phi**2 * S_tilde
             B, B_tilde  = self.phi**4 * B, self.phi**4 * B_tilde 
                     
         return C, D, Y, S, S_tilde, B, B_tilde       
-       
+    
+    @staticmethod
+    def to_constant(v):
+        
+        if isinstance(v, pint.Quantity):
+            v = Constant(v.magnitude)
+        else: 
+            v = Constant(v)
+        return v
                 
