@@ -31,6 +31,8 @@ def default_sweep_parameter():
 
     parser.add_argument('--worker', type = int, default = 10,
         help = 'Number of processes') 
+    parser.add_argument('--run', action=BooleanOptionalAction, default = True,
+        help = 'If true, sweep is run. Set to false if sweep has already been run and cached.')     
     parser.add_argument('--pool', action=BooleanOptionalAction, default = True,
         help = 'If true, FrameSequences are pickled to disk') 
     parser.add_argument('--analyse', action=BooleanOptionalAction, default = True,
@@ -88,7 +90,7 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
-    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
+    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'k_norm', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
 
     # Run sweep
     Sweeper.run_sweep(
