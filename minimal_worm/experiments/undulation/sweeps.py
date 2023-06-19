@@ -17,6 +17,12 @@ from minimal_worm.experiments.undulation import UndulationExperiment
 from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
 from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
 
+
+# Set Fenics LogLevel to Error to
+# avoid logging to mess with progressbar
+from dolfin import set_log_level, LogLevel
+set_log_level(LogLevel.ERROR)
+
 def default_sweep_parameter():
     '''
     Default sweep hyper parameter
@@ -35,14 +41,6 @@ def default_sweep_parameter():
         help = 'If true, exception handling is turned off which is helpful for debugging')    
 
     return parser
-
-def compute_swimming_speed():
-    
-    pass
-
-def compute_energies():
-    
-    pass
 
 def sweep_a_b(argv):
     '''

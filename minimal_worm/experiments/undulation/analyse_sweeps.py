@@ -53,8 +53,8 @@ def analyse_a_b(
 
     if analysis_filepath is None:
         assert raw_data_filepath.name.startswith('raw_data') 
-        analysis_filepath = Path(
-            raw_data_filepath.name.replace('raw_data', 'analysis'))
+        analysis_filepath = ( raw_data_filepath.parent
+            / raw_data_filepath.name.replace('raw_data', 'analysis'))
                 
     h5_raw_data = h5py.File(raw_data_filepath, 'r')
     h5_analysis = h5py.File(analysis_filepath, 'w')
