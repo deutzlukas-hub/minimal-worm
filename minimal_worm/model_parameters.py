@@ -7,7 +7,6 @@ Created on 14 Jun 2023
 # Built-in
 from fenics import Constant
 from argparse import ArgumentParser, BooleanOptionalAction, Namespace
-import warnings
 # Third-party 
 import numpy as np
 import pint
@@ -134,7 +133,9 @@ def physical_to_dimless_parameters(param: Namespace):
     assert a.dimensionality == ureg.dimensionless.dimensionality
     assert b.dimensionality == ureg.dimensionless.dimensionality
     assert g.dimensionality == ureg.dimensionless.dimensionality
-           
+
+    param.c_t = c_t
+               
     param.C, param.D, param.Y = C, D, Y
     param.a, param.b, param.g = a, b, g
          
