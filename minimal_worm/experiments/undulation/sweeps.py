@@ -105,8 +105,7 @@ def sweep_a_b(argv):
             sweep_param.debug,
             'UExp')
 
-        PG_filepath = PG.save(log_dir)
-
+    PG_filepath = PG.save(log_dir)
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
 
     if sweep_param.pool:
