@@ -9,6 +9,8 @@ FRAME_KEYS = [
     'd3', # Director 3
     'k', # Generalized curvature vector
     'sig', # Shear/stretch vector
+    'k_norm', # L2 norm real and preferred curvature
+    'sig_norm', # L2 norm real and preferred curvature    
 ]
 
 

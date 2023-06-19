@@ -1000,7 +1000,24 @@ class Worm:
         self.cache['k'] = Worm.k(self._A, self._theta, self._eps)
         
         return self.cache['k']
-    
+    @property   
+    def _sig_norm(self):
+        '''
+        L1 norm real minus preferred shear/stretch vector 
+        '''
+        sig_err = self._sig - self.sig_pref
+        
+        return assemble(sqrt(dot(sig_err, sig_err))*dx)        
+
+    @property
+    def _k_norm(self):
+        '''
+        L1 norm real curvature minus preferred curvature norm
+        '''        
+        k_err = self._k - self.k_pref
+        
+        return assemble(sqrt(dot(k_err, k_err))* dx)        
+
     @property        
     def _r_t(self):
         '''
