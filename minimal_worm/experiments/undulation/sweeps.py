@@ -92,20 +92,20 @@ def sweep_a_b(argv):
 
     FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'k_norm', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
 
-    # Run sweep
-    Sweeper.run_sweep(
-        sweep_param.worker, 
-        PG, 
-        UndulationExperiment.stw_control_sequence, 
-        FS_keys,
-        log_dir, 
-        sim_dir, 
-        sweep_param.overwrite, 
-        sweep_param.debug,
-        'UExp')
+    if sweep_param.run:
+        # Run sweep
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FS_keys,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
 
-    PG_filepath = PG.save(log_dir)
-
+        PG_filepath = PG.save(log_dir)
 
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
 
