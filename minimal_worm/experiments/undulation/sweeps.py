@@ -90,7 +90,7 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
-    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'k_norm', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
+    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
 
     if sweep_param.run:
         # Run sweep
