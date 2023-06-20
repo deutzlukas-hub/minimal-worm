@@ -87,6 +87,7 @@ class Saver(ABC):
         Saver._populate_array(h5, sim_filepaths, n, FS_keys, CS_keys)
 
         return h5
+    
     @staticmethod
     def _pad_array(n, arr):
         '''

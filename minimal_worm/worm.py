@@ -982,7 +982,7 @@ class Worm:
         Shear/stretch vector
         '''
         if 'sig' in self.cache:
-            return self.cache['r_t']
+            return self.cache['sig']
                         
         self.cache['sig'] =  Worm.sig(self._Q, self._r)
                 
