@@ -85,10 +85,10 @@ def sweep_a_b(argv):
     b_min, b_max = sweep_param.b[0], sweep_param.b[1]
     b_step = sweep_param.b[2]
 
-    a_param = {'v_min': a_min, 'v_max': a_max, 
+    a_param = {'v_min': a_min, 'v_max': a_max + 0.1*a_step, 
         'N': None, 'step': a_step, 'round': 4, 'log': True}    
 
-    b_param = {'v_min': b_min, 'v_max': b_max, 
+    b_param = {'v_min': b_min, 'v_max': b_max + 0.1*b_step, 
         'N': None, 'step': b_step, 'round': 5, 'log': True}
 
     grid_param = {'a': a_param, 'b': b_param}
