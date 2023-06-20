@@ -61,7 +61,7 @@ def sweep_a_b(argv):
         )
     sweep_parser.add_argument('--FK_pool', nargs = '+', 
         default = [
-            'r', 'k', 'sig', 'k_norm', 'sig_norm', 
+            'r', 'k', 'sig',
             'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
         )
 
@@ -126,7 +126,6 @@ def sweep_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
 
     if sweep_param.analyse:
-        assert sweep_param.pool        
         analyse_a_b(h5_filepath)
                 
     return
