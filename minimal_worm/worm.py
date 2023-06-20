@@ -8,6 +8,8 @@ Created on 12 May 2022
 #Built-in imports
 from typing import Dict, Optional, Tuple, List
 from types import SimpleNamespace
+import logging
+import ffc
 
 # Third-part imports
 import numpy as np
@@ -24,7 +26,6 @@ try:
 except ModuleNotFoundError:
     # This optional import is only needed if derivatives are being taken.
     pass
-
 
 # Set Fenics LogLevel to Error to
 # avoid logging to mess with progressbar
