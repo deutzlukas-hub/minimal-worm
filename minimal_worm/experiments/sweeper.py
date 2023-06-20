@@ -196,7 +196,7 @@ class Sweeper():
             h5_filepath: Path,
             sim_dir: Path,
             FS_keys = ['r', 'theta', 'sig','k'], 
-            CS_keys = ['sig', 'k']):    
+            CS_keys = None):    
         
         '''
         Pools experiment results and saves them to single HDF5

@@ -258,7 +258,27 @@ class PostProcessor(object):
         energy = trapz(power, dx=dt)
                           
         return energy
-                          
+    
+    @staticmethod
+    def U_star_to_U(U_star, f: float, L0: float):
+        '''
+        Convert dimensionless swimming speed to physical units
+        '''        
+        
+        return U_star * f * L0
+    
+    @staticmethod
+    def E_star_to_E(E_star, mu: float, f: float, L0: float):
+        '''
+        Convert dimensionless energy to physical units
+        '''        
+        
+        return E_star * mu * f * L0
+    
+
+    
+        
+                      
        
        
 
