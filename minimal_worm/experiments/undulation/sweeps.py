@@ -59,6 +59,17 @@ def sweep_a_b(argv):
         type=float, nargs=3, default = [-2, 3, 1.0])    
     sweep_parser.add_argument('--b', 
         type=float, nargs=3, default = [-3, 0, 1.0])    
+    sweep_parser.add_argument('--FK', nargs = '+', 
+        default = [
+            't', 'r', 'theta', 'd1', 'd2', 'd3', 'k', 'sig', 
+            'k_norm', 'sig_norm', 'r_t', 'w', 'k_t', 'sig_t', 
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+        )
+    sweep_parser.add_argument('--FK_pool', nargs = '+', 
+        default = [
+            'r', 'k', 'sig', 'k_norm', 'sig_norm', 
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+        )
 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
@@ -90,15 +101,13 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
-    FS_keys = ['t', 'r', 'k', 'sig', 'r_t', 'D_F_dot', 'D_I_dot', 'W_dot', 'V_dot', 'V'] 
-
     if sweep_param.run:
         # Run sweep
         Sweeper.run_sweep(
             sweep_param.worker, 
             PG, 
             UndulationExperiment.stw_control_sequence, 
-            FS_keys,
+            sweep_param.FK,
             log_dir, 
             sim_dir, 
             sweep_param.overwrite, 
@@ -120,7 +129,7 @@ def sweep_a_b(argv):
     
         h5_filepath = sweep_dir / filename
         
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FS_keys)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
 
     if sweep_param.analyse:
         assert sweep_param.pool        
