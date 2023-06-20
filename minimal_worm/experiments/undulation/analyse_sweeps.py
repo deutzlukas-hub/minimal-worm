@@ -59,6 +59,8 @@ def analyse_a_b(
     h5_raw_data = h5py.File(raw_data_filepath, 'r')
     h5_analysis = h5py.File(analysis_filepath, 'w')
 
+    h5_analysis.attrs.update(h5_raw_data.attrs)
+
     U = compute_swimming_speed(h5_raw_data)
     E_dict = compute_energies(h5_raw_data)
     
