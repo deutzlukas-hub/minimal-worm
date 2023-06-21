@@ -103,6 +103,7 @@ def analyse_a_b(
     
     h5_analysis.create_dataset('U', data = U)
     h5_analysis.create_dataset('k_norm', data = k_norm)
+    h5_analysis.create_dataset('sig_norm', data = sig_norm)
    
     grp = h5_analysis.create_group('energies')
     
