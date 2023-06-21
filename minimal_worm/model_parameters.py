@@ -44,6 +44,8 @@ def parameter_parser():
     # Dimensionless model parameters                         
     param.add_argument('--C', type = float, default = default_param.C, 
         help = "Normal and tangential linear drag coefficient ratio")
+    param.add_argument('--c_t', type = float, default = default_param.c_t, 
+        help = 'Tangential linear drag coefficient')
     param.add_argument('--D', type = float, default = default_param.D, 
         help = 'Tangential angular and linear drag coefficient ratio ')
     param.add_argument('--Y', type = float, default = default_param.Y, 
