@@ -1139,7 +1139,7 @@ class Worm:
         if 'l_M' in self.cache:
             return self.cache['l_M']
         
-        self.cache['l_M'] = self.S*self.sig_pref
+        self.cache['l_M'] = self.B*self.k_pref
         
         return self.cache['l_M']
     
