@@ -32,6 +32,16 @@ def compute_average_curvature_norm(h5: h5py, Delta_t: float = 2.0):
     
     return k_avg_norm.reshape(h5.attrs['shape'])
 
+def compute_average_sig_norm(h5: h5py, Delta_t: float = 2.0):
+
+    t = h5['t'][:]
+    idx_arr = t >= Delta_t
+        
+    sig_norm_arr = h5['FS']['sig_norm'][:, idx_arr]
+    sig_avg_norm = sig_norm_arr.mean(axis = 1)
+        
+    return sig_avg_norm.reshape(h5.attrs['shape'])
+
 def compute_swimming_speed(h5: h5py, Delta_t: float):
     '''
     Computes swimming speed for every simulation in h5
@@ -89,6 +99,7 @@ def analyse_a_b(
     U = compute_swimming_speed(h5_raw_data, Delta_t)
     E_dict = compute_energies(h5_raw_data, Delta_t)
     k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
+    sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
     
     h5_analysis.create_dataset('U', data = U)
     h5_analysis.create_dataset('k_norm', data = k_norm)
