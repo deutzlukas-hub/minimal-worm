@@ -19,10 +19,12 @@ def test_instantenous_power_balance(h5_filename):
     W_dot = h5['FS']['W_dot'][:]
     
     D_dot = D_I_dot + D_F_dot
-        
+    
+    assert np.all(D_dot <= 0)
+                
     atol = 1e-1
     
-    assert np.allclose(V_dot - (W_dot + D_dot), atol = atol)
+    assert np.allclose(V_dot - (W_dot + D_dot), 0, atol = atol)
     
         
 if __name__ == '__main__':
