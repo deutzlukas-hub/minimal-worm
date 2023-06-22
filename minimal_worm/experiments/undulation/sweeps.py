@@ -61,7 +61,7 @@ def sweep_a_b(argv):
         )
     sweep_parser.add_argument('--FK_pool', nargs = '+', 
         default = [
-            'r', 'k', 'sig', 'k_norm', 'sig_norm',
+            'r', 'k', 'sig', 'k_norm', 'sig_norm', 'r_t',
             'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
         )
 
