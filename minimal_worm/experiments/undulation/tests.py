@@ -13,10 +13,10 @@ def test_instantenous_power_balance(h5_filename):
     
     h5 = h5py.File(sweep_dir / h5_filename, 'r')
     
-    V_dot = h5['FS']['V_dot']
-    D_I_dot = h5['FS']['D_I_dot']
-    D_F_dot = h5['FS']['D_F_dot']    
-    W_dot = h5['FS']['W_dot']
+    V_dot = h5['FS']['V_dot'][:]
+    D_I_dot = h5['FS']['D_I_dot'][:]
+    D_F_dot = h5['FS']['D_F_dot'][:]   
+    W_dot = h5['FS']['W_dot'][:]
     
     D_dot = D_I_dot + D_F_dot
         
