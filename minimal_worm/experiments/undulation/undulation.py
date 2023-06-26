@@ -24,10 +24,10 @@ class UndulationExperiment(Experiment):
         parser = Experiment.parameter_parser()
             
         # Kinematic parameter
-        parser.add_argument('--A', type = bool, default = 4.0,
+        parser.add_argument('--_A', type = bool, default = 4.0,
             help = 'Dimensionless curvature amplitude')
         parser.add_argument('--use_c', action = BooleanOptionalAction, default = False,
-            help = 'If True, uses curvature amplitude wavenumber ratio c to determine amplitude A')                       
+            help = 'If True, uses curvature amplitude wavenumber ratio c to determine amplitude _A')                       
         parser.add_argument('--c', type = float, default = 1.0,
             help= 'Curvature amplitude wavenumber ratio')                           
         parser.add_argument('--lam', type = float, default = 1.0,
@@ -53,10 +53,10 @@ class UndulationExperiment(Experiment):
         q = 2*np.pi / lam
                 
         if not param.use_c:
-            A = param.A            
+            _A = param._A            
         else:
             c = param.c
-            A = c*q
+            _A = c*q
 
         t = Constant(0.0)
                                     
@@ -66,8 +66,8 @@ class UndulationExperiment(Experiment):
         # Gradual muscle activation onset at head and tale
         sh, st = UndulationExperiment.spatial_gmo(param)        
                                                                         
-        k = Expression(("sm_on*sh*st*A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
-            degree=1, t = t, A = A, q = q, sh = sh, st = st, sm_on = sm_on)   
+        k = Expression(("sm_on*sh*st*_A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
+            degree=1, t = t, _A = _A, q = q, sh = sh, st = st, sm_on = sm_on)   
                   
         sig = Constant((0, 0, 0))    
     

@@ -152,7 +152,7 @@ def plot_multiple_scalar_fields(
     axes = [plt.subplot(p) for p in gs]
 
     if titles is None:
-        titles = 3 * [""]
+        titles = M * [""]
     if cmaps is None:
         cmaps = M * [plt.cm.BrBG]
     if cbar_formats is None:

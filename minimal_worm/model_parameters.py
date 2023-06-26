@@ -117,11 +117,11 @@ def physical_to_dimless_parameters(param: Namespace):
     # Drag coefficient ratio
     c_t, C, D, Y = RFT(param)
     
-    A = np.pi * param.R**2
+    _A = np.pi * param.R**2
     I = 0.25 * np.pi * param.R**4
                     
     # Cross-sectional area divided by second moment of area 
-    g =  I / (A * param.L0**2)                         
+    g =  I / (_A * param.L0**2)                         
     # Elastic time scale                
     tau = (param.mu * param.L0**4 * c_t) / (param.E * I) 
     # Viscous time scale

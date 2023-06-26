@@ -305,156 +305,6 @@ class Worm:
                                 
         return
 
-    def _init_form_TODO_1(self):
-        '''
-        Init weak form
-        '''
-        
-        # weak form
-        u = TrialFunction(self.W)
-        phi = TestFunction(self.W)
-
-        r, theta = split(u)
-        phi_r, phi_theta = split(phi)
-
-        self.u_h = Function(self.W)
-
-        r_h, theta_h = split(self.u_h)
-
-        r_t, theta_t = self._init_first_time_derivatives(r, theta)
-                        
-        A_h = Worm.A(theta_h)
-        A_h_t = Worm.A_t(theta_h, theta_t) #alpha_t, beta_t)
-        Q_h = Worm.Q(theta_h)
-        T_h = Worm.T(r_h)
-
-        # length-element
-        eps_h = sqrt(dot(grad(r_h), grad(r_h)))
-
-        # angular velocity vector
-        w = A_h * theta_t
-        # shear/stretch vector
-        sig = Q_h * grad(r) - e3
-
-        # time derivative shear stretch vector
-        sig_t = Q_h * grad(r_t) - cross(w, Q_h * grad(r_h))
-
-        # generalized curvature
-        k = A_h * grad(theta) / eps_h
-        # time derivative generalized curvature
-        k_t = A_h * grad(theta_t) / eps_h + A_h_t * grad(theta_h) / eps_h
-
-        # internal force
-        n = Q_h.T * (self.S * (sig - self.sig_pref) + self.S_tilde * sig_t)
-        # internal torque
-        m = Q_h.T * (self.B * (k - self.k_pref) + self.B_tilde * k_t)
-
-        # external fluid drag torque
-        l_F = Constant((0,0,0))
-        # external fluid drag force
-        d3_h = Q_h.T * e3
-        d3d3_h = outer(d3_h, d3_h)
-        f_F = -(d3d3_h + self.K * (Identity(3) - d3d3_h)) * r_t
-        
-        # linear balance
-        eq1 = dot(f_F, phi_r) * dx - dot(n, grad(phi_r)) * dx
-        # angular balance
-        eq2 = (
-            dot(l_F, phi_theta) * dx
-            + dot(T_h * n, phi_theta) * dx
-            - dot(m, grad(phi_theta)) * dx
-        )
-
-        equation = eq1 + eq2
-
-        self.F_op, self.L = lhs(equation), rhs(equation)
-
-        for i in range(100):
-            
-            self.u_h.assign(self.u_old)    
-            u = Function(self.W)
-            solve(self.F_op == self.L, u)
-            assert not np.isnan(u.vector().get_local()).any(), (
-            f'Solution at i={i} contains nans!')    
-        
-            #_r, _theta = u.split(deepcopy=True)
-                                            
-            self.u_old.assign(u)
-
-        return
-
-
-    def _init_form_TODO_2(self):
-        '''
-        Initialises weak form for inertia less active viscous elastic Cosserat rod
-        immersed in Netwonian fluid 
-        '''
-
-        # Trial function u 
-        u = TrialFunction(self.W)        
-        # Test function phi
-        phi = TestFunction(self.W)
-
-        # Split into centreline and Euler angles        
-        r, theta = split(u)
-        phi_r, phi_theta = split(phi)
-
-        # To linearize the equations of motion, we approximate all nonlinear 
-        # quadratic terms "u^2" as products "u*u_h", where u_h is the solution 
-        # of previous time step         
-        self.u_h = Function(self.W) 
-        r_h, theta_h = split(self.u_h)
-
-        # Time derivatives of centreline and Euler angles 
-        r_t, theta_t, _, _ = self._init_first_time_derivatives(r, theta)        
-                                    
-        # length-element
-        eps_h = Worm.eps(r_h)
-        # Local rotation matrix        
-        Q_h = Worm.Q(theta_h)
-        # Matrix A 
-        A_h = Worm.A(theta_h)
-        # Time derivative of matrix A
-        A_t = Worm.A_t(theta_h, theta_t)
-        
-        # Angular velocity in the body frame
-        w = Worm.w(A_h,theta_t)
-                
-        # shear/stretch vector in the body frame
-        sig = Worm.sig(Q_h, r)
-        # time derivative shear stretch/vector in the body frame
-        sig_t = Worm.sig_t(Q_h, r_h, r_t, w)
-        # generalized curvature vector in the body frame
-        k = Worm.k(A_h, theta, eps_h) 
-        # time derivative generalized curvature in the body frame
-        k_t = Worm.k_t(A_h, A_t, theta_t, theta_h, eps_h)
-
-        # internal force and active muscle force in the lab frame
-        N = self.N_(Q_h, sig - self.sig_pref, sig_t)                 
-        # internal and active muscle torque in the lab frame
-        M = self.M(Q_h, k - self.k_pref, k_t)
-        
-        # external fluid drag torque line density in the lab frame
-        l_F = Constant((0, 0, 0)) # TODO
-        # external fluid drag force line density in the lab frame
-        f_F = self.f_F(Q_h, r_t)
-         
-        # Equations of motion
-
-        # linear balance        
-        eq1 = dot(f_F, phi_r) * dx - dot(N, grad(phi_r)) * dx
-        # angular balance
-        eq2 = ( dot(l_F, phi_theta) * dx 
-            + dot(cross(grad(r_h), N), phi_theta) * dx 
-            - dot(M, grad(phi_theta)) * dx
-        )
-
-        equation = eq1 + eq2 
-
-        self.F_op, self.L = lhs(equation), rhs(equation)
-
-        return
-
     def _print(self, s):
         # todo: proper logging!
         if not self.quiet:
@@ -718,7 +568,7 @@ class Worm:
                                                  
         return C
 
-#--------------------------------------------------typ---------------------------- 
+#------------------------------------------------------------------------------ 
 # Define all relevant variables and terms and in the equations of motion 
     
     @staticmethod
@@ -836,7 +686,7 @@ class Worm:
         Generalized curvature vector
         '''
         
-        return A * grad(theta) / eps        
+        return A * grad(theta) # / eps        
     
     @staticmethod
     def sig_t(Q, r, r_t, w):
@@ -851,7 +701,10 @@ class Worm:
         '''
         Time derivative of curvature vector
         '''        
-        return A * grad(theta_t) / eps + A_t * grad(theta) / eps
+        # return A * grad(theta_t) / eps + A_t * grad(theta) / eps
+    
+        return A * grad(theta_t) + A_t * grad(theta) 
+    
     
     def f_F(self, Q, r_t):
         '''
@@ -1070,7 +923,7 @@ class Worm:
     @property
     def _sig_t(self):
         '''
-        Shear/stretch 
+        Shear/stretch rate
         '''
 
         if 'sig_t' in self.cache:
@@ -1084,7 +937,7 @@ class Worm:
     @property
     def _k_t(self):
         '''
-        Curvature
+        Curvature rate
         '''
         
         if 'k_t' in self.cache:
@@ -1129,7 +982,7 @@ class Worm:
         if 'f_M' in self.cache:
             return self.cache['f_M']
         
-        self.cache['f_M'] = -grad(self.S*self.sig_pref)
+        self.cache['f_M'] = -grad(project(self.S*self.sig_pref, self.V3))
         
         return self.cache['f_M']
     
@@ -1139,7 +992,7 @@ class Worm:
         if 'l_M' in self.cache:
             return self.cache['l_M']
         
-        self.cache['l_M'] = -grad(self.B*self.k_pref)
+        self.cache['l_M'] = -grad(project(self.B*self.k_pref, self.V3))
         
         return self.cache['l_M']
     
