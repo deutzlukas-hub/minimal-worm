@@ -4,22 +4,22 @@ Created on 9 Jun 2023
 @author: amoghasiddhi
 
 
-The rotation matrix Q operates on a vector v in the original coordinate system with basis vector 
+The rotation matrix _Q operates on a vector v in the original coordinate system with basis vector 
 e1, e2, e3 and transforms it into a vector v_bar in the new coordinate system with basis
 vectors d1, d2, d3. The transformation is defined as
 
-v_bar = Q*v 
+v_bar = _Q*v 
 
 The components of v_bar can be used to express v in terms of the new basis vector d1, d2, d3
 
 v = v_bar_1*d1 + v_bar_2*d2 + v_bar_3*d3
 
-Multiplying with Q from the left yields 
+Multiplying with _Q from the left yields 
 
-v =  v_bar_1*Q*d1 + v_bar_2*Q*d1 + v_bar_3*Q*d1 
+v =  v_bar_1*_Q*d1 + v_bar_2*_Q*d1 + v_bar_3*_Q*d1 
 
-from which follows that ei=Q*di and Q^T*ei=di where we used that Q^T*Q=I. From
-Q^T*ei=di follows that Q must have the new basis vectors di as rows. 
+from which follows that ei=_Q*di and _Q^T*ei=di where we used that _Q^T*_Q=I. From
+_Q^T*ei=di follows that _Q must have the new basis vectors di as rows. 
 '''
 
 import numpy as np
@@ -101,19 +101,19 @@ def Q_from_abg_fenics(a, b, g):
 
 
         
-def abg_from_Q_numpy(Q):
+def abg_from_Q_numpy(_Q):
     
-    a = np.arctan2(Q[1,0],Q[0,0])
-    b = np.arcsin(-Q[2,0])
-    g = np.arctan2(Q[2,1], Q[2,2])
+    a = np.arctan2(_Q[1,0],_Q[0,0])
+    b = np.arcsin(-_Q[2,0])
+    g = np.arctan2(_Q[2,1], _Q[2,2])
     
     return a,b,g
 
-def abg_from_Q_fenis(Q):
+def abg_from_Q_fenis(_Q):
     
-    a = atan_2(Q[1,0], Q[0,0])
-    b = asin(-Q[2,0])
-    g = atan_2(Q[2,1], Q[2,2])
+    a = atan_2(_Q[1,0], _Q[0,0])
+    b = asin(-_Q[2,0])
+    g = atan_2(_Q[2,1], _Q[2,2])
     
     return a,b,g
 
@@ -143,19 +143,19 @@ def test_Euler_angle_round_trip_numpy():
     for i, (d1, d2, d3) in enumerate(zip(d1_arr, d2_arr, d3_arr)):
                         
         # Rotation matrix has body frame vectors as rows
-        Q = np.vstack((d1, d2, d3))
+        _Q = np.vstack((d1, d2, d3))
         
-        # Check that di = Q^T*ei
-        assert np.allclose(d1, np.matmul(Q.T, e1), atol = atol)
-        assert np.allclose(d2, np.matmul(Q.T, e2), atol = atol)
-        assert np.allclose(d3, np.matmul(Q.T, e3), atol = atol)
+        # Check that di = _Q^T*ei
+        assert np.allclose(d1, np.matmul(_Q.T, e1), atol = atol)
+        assert np.allclose(d2, np.matmul(_Q.T, e2), atol = atol)
+        assert np.allclose(d3, np.matmul(_Q.T, e3), atol = atol)
 
-        # Euler angles from Q
-        a, b, g = abg_from_Q_numpy(Q)                        
+        # Euler angles from _Q
+        a, b, g = abg_from_Q_numpy(_Q)                        
         
-        # Check that Q from body frame vectors and Euler angles
+        # Check that _Q from body frame vectors and Euler angles
         # are identical
-        assert np.allclose(Q, Q_from_abg_numpy(a,b,g), atol = atol)
+        assert np.allclose(_Q, Q_from_abg_numpy(a,b,g), atol = atol)
         
         a_arr[i], b_arr[i], g_arr[i] = a,b,g
 
@@ -201,19 +201,19 @@ def test_Euler_angle_round_trip_fenics():
     assert np.allclose(f2n(project(dot(d2, d3), V)), 0, atol)
     assert np.allclose(f2n(project(dot(d1, d3), V)), 0, atol)
     
-    Q = outer(e1, d1) + outer(e2, d2) + outer(e3, d3)
+    _Q = outer(e1, d1) + outer(e2, d2) + outer(e3, d3)
                                                                      
-    assert np.allclose(f2n(project(d1 - Q.T*e1, V3)), 0, atol)   
-    assert np.allclose(f2n(project(d2 - Q.T*e2, V3)), 0, atol)   
-    assert np.allclose(f2n(project(d3 - Q.T*e3, V3)), 0, atol)   
+    assert np.allclose(f2n(project(d1 - _Q.T*e1, V3)), 0, atol)   
+    assert np.allclose(f2n(project(d2 - _Q.T*e2, V3)), 0, atol)   
+    assert np.allclose(f2n(project(d3 - _Q.T*e3, V3)), 0, atol)   
                
-    a, b, g = abg_from_Q_fenis(Q)    
+    a, b, g = abg_from_Q_fenis(_Q)    
 
     assert np.allclose(project(a, V).vector().get_local(), 0)
     assert np.allclose(project(b, V).vector().get_local(), 0)
     # assert np.allclose(project(g, V).vector().get_local(), 0)
                            
-    assert np.allclose(project(Q - Q_from_abg_fenics(a, b, g), V33).vector().get_local(), 0, atol=atol)                                                     
+    assert np.allclose(project(_Q - Q_from_abg_fenics(a, b, g), V33).vector().get_local(), 0, atol=atol)                                                     
     
     print('Passed Euler angles round trip test in Fenics')
 

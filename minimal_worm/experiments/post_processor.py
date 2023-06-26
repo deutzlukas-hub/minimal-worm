@@ -259,21 +259,61 @@ class PostProcessor(object):
                           
         return energy
     
+    @staticmethod    
+    def physical_2_dimless_parameters(param, **kwargs):
+        '''
+        Converts physical to dimensionless parameters a and b
+        '''    
+        
+        # optional parameters
+        opt_args = [
+            'L0', # body length
+            'R', # cross-sectional radius
+            'T_c', # characteristic time
+            'E', # Young's modulus
+            'eta', # Extensional viscosity
+            'mu', # Fluid viscosity
+            'c_t', # tangential drag coefficient
+        ]
+        
+        for arg in opt_args:
+            if arg not in kwargs:
+                #TODO
+                kwargs[arg] = param[arg]
+        
+        R, L0, T_c = kwargs['R'], kwargs['L0'], kwargs['T_c']
+        E, eta = kwargs['E'], kwargs['eta']
+        mu, c_t = kwargs['mu'], kwargs['c_t'] 
+        
+        # second moment of area                
+        I = 0.25 * np.pi * R**4
+                        
+        # Elastic time scale                
+        tau = (mu * L0**4 * c_t) / (E * I) 
+        # Viscous time scale
+        xi = eta / E
+        # Dimless elastic time scale ratio 
+        a = tau / T_c
+        # Dimless viscous time scale ratio 2        
+        b = xi / T_c     
+        
+        return a, b
+    
+    
     @staticmethod
     def U_star_to_U(U_star, f: float, L0: float):
         '''
-        Convert dimensionless swimming speed to physical units
-        '''        
-        
+        Convert dimensionless swimming speed to physical units meter per seconds
+        '''                
         return U_star * f * L0
     
     @staticmethod
     def E_star_to_E(E_star, mu: float, f: float, L0: float):
         '''
-        Convert dimensionless energy to physical units
+        Convert dimensionless energy to physical units Jouls
         '''        
         
-        return E_star * mu * f * L0
+        return E_star * mu * f * L0**3
     
 
     

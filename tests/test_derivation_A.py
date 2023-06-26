@@ -32,7 +32,7 @@ def _Q():
 
 def _d123():
     '''
-    Body frame vectors d1,d2,d3 are rows of Q
+    Body frame vectors d1,d2,d3 are rows of _Q
     '''
     
     d1 = c1*c2 * e1 + (c1*s2*s3 - c3*s1) * e2 + (s1*s3 + c1*c3*s2) * e3 
@@ -64,28 +64,28 @@ def _A():
     Analytic derivation
     '''
     
-    A = Matrix([
+    _A = Matrix([
         [0, s1, -c1*c2],
         [0, -c1, -c2*s1],
         [-1, 0, s2]
         ]
     )
         
-    return A
+    return _A
 
 def _A_t():
     '''
     Analytic derivation
     '''
     
-    A = Matrix([
+    _A = Matrix([
         [0, c1*a_t, s1*c2*a_t-c1*s2*b_t],
         [0, s1*a_t, s2*s1*b_t-c2*c1*a_t],
         [0, 0, c2*b_t]
         ]
     )
         
-    return A
+    return _A
     
 def test_Q():
     
@@ -108,20 +108,20 @@ def test_Q():
         [0, 0, 1]
     ])
     
-    Q = R_3 * R_2 * R_1
+    _Q = R_3 * R_2 * R_1
 
-    assert Q.equals(_Q())
+    assert _Q.equals(_Q())
         
-    print('Q passed test')
+    print('_Q passed test')
 
 def test_d123():
 
     d1, d2, d3 = _d123()    
-    Q = _Q()    
+    _Q = _Q()    
     
-    assert d1.equals(Q.T*e1)
-    assert d2.equals(Q.T*e2)
-    assert d3.equals(Q.T*e3)
+    assert d1.equals(_Q.T*e1)
+    assert d2.equals(_Q.T*e2)
+    assert d3.equals(_Q.T*e3)
     
     print('d123 passed test')
          
@@ -141,23 +141,23 @@ def test_k():
 
 def test_A():
     
-    A = _A()    
+    _A = _A()    
     theta_s = Matrix([a_s, b_s, g_s]) 
     
-    k = A * theta_s 
+    k = _A * theta_s 
     
     assert k[0].equals(_k1())
     assert k[1].equals(_k2())
     assert k[2].equals(_k3())
     
-    pprint(A)
+    pprint(_A)
     
-    print('A passed test')
+    print('_A passed test')
 
 def test_A_t():
     
-    A = _A()        
-    A_t = diff(A, t)
+    _A = _A()        
+    A_t = diff(_A, t)
     
     assert A_t.equals(A_t)
     

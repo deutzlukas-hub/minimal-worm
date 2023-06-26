@@ -1,10 +1,13 @@
 import numpy as np
 from fenics import *
-from minimal_worm.util import f2n
-from minimal_worm import Frame
 from ufl import atan_2
+
+
+from minimal_worm.util import f2n
 from minimal_worm import Worm
-from minimal_worm.model_parameters import DMP
+from minimal_worm import ModelParameter
+from minimal_worm.experiments.undulation import UndulationExperiment
+
 
 def test_finite_backwards_difference():
 	'''	
@@ -35,7 +38,7 @@ def test_finite_backwards_difference():
 		for n in [1,2]:
 			# kth order derivative
 			for k in np.arange(1, 4.01, dtype = int):								
-				c_arr, s_arr = worm._finite_difference_coefficients(n, k)
+				c_arr, _ = worm._finite_difference_coefficients(n, k)
 
 				assert np.allclose(c_arr, solution[n,k]), f"n={n}, k={k}" 
 
@@ -129,30 +132,44 @@ def test_constant_control():
 	k_pref[0, :] = k1_pref
 	
 	atol = 1e-3
-	
-	import matplotlib.pyplot as plt
-	from minimal_worm.plot import plot_scalar_field
-	
-	gs = plt.GridSpec(2, 1)
-	ax0 = plt.subplot(gs[0])
-	ax1 = plt.subplot(gs[1])
-
-	plot_scalar_field(ax0, CS['k'][:, 0, :])
-	plot_scalar_field(ax1, FS.k[:, 0, :])
-	
-	plt.show()
-		
+			
 	assert np.allclose(FS.k[-1, :], k1_pref, atol = 1e-3) 
 	
 	return
 
+def test_power_balance():
+	
+	parser = UndulationExperiment.parameter_parser()
+	param = parser.parse_args()			
+	
+	param.dt = 0.01
+	param.N = 250
+	
+	MP = ModelParameter(param)	
+	CS = UndulationExperiment.stw_control_sequence(param)	
+				
+	worm = Worm(param.N, param.dt)
+	FS = worm.solve(param.T, MP, CS, 
+		FK = ['t', 'V_dot', 'D_I_dot', 'D_F_dot', 'W_dot'])[0]
+
+	import matplotlib.pyplot as plt
+	
+	plt.plot(FS.t, FS.V_dot, label = r'$\dot{V}$')
+	plt.plot(FS.t, FS.D_I_dot, label = r'$\dot{D}_I$')
+	plt.plot(FS.t, FS.D_F_dot, label = r'$\dot{D}_F$')
+	plt.plot(FS.t, FS.W_dot, label = r'$\dot{W}$')
+	plt.legend()
+	plt.show()
+	
+	return
+	
 if __name__ == '__main__':
 
 	#test_finite_backwards_difference()
 	#test_assign_initial_configuration()
 	#test_zero_control()	
-	test_constant_control()
-
+	#test_constant_control()
+	test_power_balance()
 	
 	#test_Euler_angle_numpy()
 
