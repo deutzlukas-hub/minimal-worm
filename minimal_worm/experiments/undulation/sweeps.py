@@ -97,7 +97,7 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
-    if sweep_parser.save_to_storage:
+    if sweep_param.save_to_storage:
         log_dir, sim_dir, sweep_dir = create_storage_dir()     
                 
     if sweep_param.run:
