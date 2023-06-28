@@ -14,7 +14,7 @@ from parameter_scan import ParameterGrid
 # Local imports
 from minimal_worm.experiments import Sweeper, Saver
 from minimal_worm.experiments.undulation import UndulationExperiment
-from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir, create_storage_dir
 from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
 
 def default_sweep_parameter():
@@ -24,7 +24,7 @@ def default_sweep_parameter():
     parser = ArgumentParser(description = 'sweep-parameter')
 
     parser.add_argument('--worker', type = int, default = 10,
-        help = 'Number of processes') 
+        help = 'Number of processes')         
     parser.add_argument('--run', action=BooleanOptionalAction, default = True,
         help = 'If true, sweep is run. Set to false if sweep has already been run and cached.')     
     parser.add_argument('--pool', action=BooleanOptionalAction, default = True,
@@ -35,6 +35,8 @@ def default_sweep_parameter():
         help = 'If true, already existing simulation results are overwritten')
     parser.add_argument('--debug', action=BooleanOptionalAction, default = False,
         help = 'If true, exception handling is turned off which is helpful for debugging')    
+    parser.add_argument('--save_to_storage', action=BooleanOptionalAction, default = False,
+        help = 'If true, results are saved to external storage filesystem specified in dirs.py')         
 
     return parser
 
@@ -95,6 +97,9 @@ def sweep_a_b(argv):
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
+    if sweep_parser.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+                
     if sweep_param.run:
         # Run sweep
         Sweeper.run_sweep(
