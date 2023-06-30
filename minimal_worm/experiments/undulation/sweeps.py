@@ -122,7 +122,7 @@ def sweep_a_b(argv):
         f'a_min={a_min}_a_max={a_max}_step_a={a_step}_'
         f'b_min={b_min}_b_max={b_max}_step_b={b_step}_'
         f'A={model_param.A}_lam={model_param.lam}_'
-        f'N={model_param.N}_dt={model_param.dt}.h5')        
+        f'N={model_param.N}_dt={model_param.dt:f}.h5')        
     
     h5_filepath = sweep_dir / filename
 
