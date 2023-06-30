@@ -7,6 +7,7 @@ Created on 15 Jun 2023
 from pathlib import Path
 from sys import argv
 from argparse import ArgumentParser, BooleanOptionalAction
+from decimal import Decimal
 
 # Third-party
 from parameter_scan import ParameterGrid
@@ -117,7 +118,7 @@ def sweep_a_b(argv):
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
 
     # dt's number of decimal places 
-    dp = len(str(model_param.dt).split('.')[1])  
+    dp = len(str(Decimal(str(model_param.dt))).split('.')[1])  
 
     # Run sweep
     filename = Path(
