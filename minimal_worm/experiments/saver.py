@@ -67,6 +67,7 @@ class Saver(ABC):
         h5 = h5py.File(filepath, 'w')
         h5.attrs['grid_filename'] = PG.filename + '.json'       
         h5.attrs['shape'] = PG.shape        
+        h5.attrs['size'] = len(PG)
         h5.attrs['T'] = PG.base_parameter['T']
         
         h5.create_dataset('exit_status', shape = len(PG), dtype = float)
