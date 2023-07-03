@@ -91,11 +91,11 @@ def analyse_a_b(
     h5_analysis = h5py.File(analysis_filepath, 'w')
 
     h5_analysis.attrs.update(h5_raw_data.attrs)
-
-    # Skip first two periods where 
-    # system dynamics are transient
-    Delta_t = 2.0
-            
+    
+    # Compute energies from last period
+    T = h5_raw_data.attrs['T']
+    Delta_t = T - 1
+                
     U = compute_swimming_speed(h5_raw_data, Delta_t)
     E_dict = compute_energies(h5_raw_data, Delta_t)
     k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
