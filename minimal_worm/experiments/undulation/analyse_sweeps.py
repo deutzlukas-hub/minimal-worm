@@ -99,7 +99,7 @@ def analyse_a_b(
     Delta_t = T - 1
                 
     U = compute_swimming_speed(h5_raw_data, Delta_t)
-    E_dict = compute_energies(h5_raw_data, Delta_t)
+    E_dict = compute_energies(h5_raw_data) #Delta_t)
     k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
     sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
     
