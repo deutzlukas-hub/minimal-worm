@@ -8,10 +8,11 @@ from sys import argv
 from typing import Tuple
 from argparse import ArgumentParser
 from pathlib import Path
-    
+        
 # Third-party
 import numpy as np
 import h5py 
+from scipy.integrate import trapz
 
 # Local imports
 from minimal_worm.experiments import PostProcessor
@@ -56,23 +57,24 @@ def compute_swimming_speed(h5: h5py, Delta_t: float):
         
     return U_arr.reshape(h5.attrs['shape'])
                 
-def compute_energies(h5: h5py, Delta_t: float = 2.0):
+def compute_energies(h5: h5py): #Delta_t: float = 2.0):
     '''
     Computes energy cost  and mechanical work per undulation period 
     '''
     
     t = h5['t'][:]    
-    N_undu = h5.attrs['T'] - Delta_t
+    dt = t[1] - t[0]
+    t_start = h5.attrs['T'] - 1.0
+    idx_arr = t >= t_start
     
     E_dict = {}
     
     # Iterate over powers
     for P_key in POWER_KEYS:                        
-        E = np.zeros(h5['FS']['r'].shape[0])        
         # Iterate over all simulations 
-        for i, P in enumerate(h5['FS'][P_key]):            
-            E[i] = PostProcessor.comp_energy_from_power(P, t, Delta_t) / N_undu
-            
+        P = h5['FS'][P_key][:, idx_arr]
+        E = trapz(P, dx = dt, axis = 1) 
+                                    
         E_key = PostProcessor.engery_names_from_power[P_key]            
         E_dict[E_key] = E.reshape(h5.attrs['shape'])
         
