@@ -204,7 +204,7 @@ def sweep_A_lam_a_b(argv):
         'N': None, 'step': A_step, 'round': 1}    
 
     lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1*lam_step, 
-        'N': None, 'step': lam_step, 'round': 2, 'log': True}    
+        'N': None, 'step': lam_step, 'round': 2}    
 
     a_param = {'v_min': a_min, 'v_max': a_max + 0.1*a_step, 
         'N': None, 'step': a_step, 'round': 4, 'log': True}    
