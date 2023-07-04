@@ -379,11 +379,124 @@ def sweep_c_lam_a_b(argv):
                 
     return
 
+def sweep_C_a_b(argv):
+    '''
+    Parameter sweep over time scale ratios a and b and 
+    drag coefficient ratio K
+    
+    Check if the line transition from internal to external 
+    dominated dissipation regime changes as function of K
+    '''    
+
+    # parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+
+    sweep_parser.add_argument('--C', 
+        type=float, nargs=3, default = [2.0, 10.0, 1.0])    
+        
+    sweep_parser.add_argument('--a', 
+        type=float, nargs=3, default = [-2, 3, 1.0])    
+    sweep_parser.add_argument('--b', 
+        type=float, nargs=3, default = [-3, 0, 1.0])    
+    sweep_parser.add_argument('--FK', nargs = '+', 
+        default = [
+            't', 'r', 'theta', 'd1', 'd2', 'd3', 'k', 'sig', 
+            'k_norm', 'sig_norm', 'r_t', 'w', 'k_t', 'sig_t', 
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+        )
+    sweep_parser.add_argument('--FK_pool', nargs = '+', 
+        default = [
+            'r', 'k', 'sig', 'k_norm', 'sig_norm', 'r_t',
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+        )
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+
+    # parse model parameter and convert to dict
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # print all command-line-arguments assuming that they
+    # are different from the default option 
+    cml_args = {k: v for k, v in vars(model_param).items() 
+        if v != model_parser.get_default(k)}
+    
+    if len(cml_args) != 0: 
+        print(cml_args)
+
+    C_min, C_max = sweep_param.C[0], sweep_param.C[1]
+    C_step = sweep_param.C[2]
+
+    a_min, a_max = sweep_param.a[0], sweep_param.a[1]
+    a_step = sweep_param.a[2]
+
+    b_min, b_max = sweep_param.b[0], sweep_param.b[1]
+    b_step = sweep_param.b[2]
+
+
+    C_param = {'v_min': C_min, 'v_max': C_max + 0.1*C_step, 
+        'N': None, 'step': C_step, 'round': 1}    
+
+    a_param = {'v_min': a_min, 'v_max': a_max + 0.1*a_step, 
+        'N': None, 'step': a_step, 'round': 4, 'log': True}    
+
+    b_param = {'v_min': b_min, 'v_max': b_max + 0.1*b_step, 
+        'N': None, 'step': b_step, 'round': 5, 'log': True}
+
+    grid_param = {'C': C_param, 'a': a_param, 'b': b_param}
+    
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+           
+    if sweep_param.run:
+        # Run sweep
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            sweep_param.FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # dt's number of decimal places 
+    # dp = len(str(Decimal(str(model_param.dt))).split('.')[1])  
+        
+    # Run sweep
+    filename = Path(
+        f'raw_data_'
+        f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'        
+        f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
+        f'T={model_param.T}_'        
+        f'N={model_param.N}_dt={model_param.dt}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+
+    if sweep_param.analyse:
+        analyse_a_b(h5_filepath)
+                
+    return
+
+
 if __name__ == '__main__':
         
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b'], help='Sweep to run')
+        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'c_lam_a_b', 'C_a_b'], help='Sweep to run')
         
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
