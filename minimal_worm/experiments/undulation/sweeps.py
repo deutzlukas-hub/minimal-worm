@@ -474,11 +474,10 @@ def sweep_C_a_b(argv):
     # Run sweep
     filename = Path(
         f'raw_data_'
-        f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'        
-        f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
+        f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'
         f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
         f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
-        f'T={model_param.T}_'        
+        f'A={model_param.A}_lam={model_param.lam}_T={model_param.T}_'        
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
