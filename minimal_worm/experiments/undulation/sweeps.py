@@ -248,7 +248,6 @@ def sweep_A_lam_a_b(argv):
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'a_min={a_min}_a_max={a_max}_step_a={a_step}_'
         f'b_min={b_min}_b_max={b_max}_step_b={b_step}_'
-        f'A={model_param.A}_lam={model_param.lam}_'
         f'T={model_param.T}_'        
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
@@ -292,7 +291,6 @@ def sweep_c_lam_a_b(argv):
             'r', 'k', 'sig', 'k_norm', 'sig_norm', 'r_t',
             'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
         )
-
 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
@@ -368,7 +366,6 @@ def sweep_c_lam_a_b(argv):
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
         f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
-        f'A={model_param.A}_lam={model_param.lam}_'
         f'T={model_param.T}_'        
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
