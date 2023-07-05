@@ -252,7 +252,8 @@ class PostProcessor(object):
         if t_end is not None:
             idx_arr = idx_arr[t <= t_end]
             t = t[idx_arr]
-                                        
+                   
+        power = power[idx_arr]                                        
         dt = t[1] - t[0]                                           
                
         energy = trapz(power, dx=dt)

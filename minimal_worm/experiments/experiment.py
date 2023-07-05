@@ -18,7 +18,7 @@ from tqdm import tqdm
 # Local imports
 from minimal_worm import Worm
 from minimal_worm import FrameSequence
-from minimal_worm import ModelParameter, parameter_parser
+from minimal_worm import ModelParameter, parameter_parser, physical_to_dimless_parameters
 from mp_progress_logger import FWException
             
 class Experiment(ABC):      
@@ -147,7 +147,9 @@ def simulate_experiment(worm: Worm,
     :param logger (logging.Logger): Progress logger
     :param F0 (simple_worm.FrameSequence): Initial frame
     '''
-
+    if param.from_physical:
+        physical_to_dimless_parameters(param)
+    
     MP = ModelParameter(param)
                         
     FS, CS, e = worm.solve(param.T, MP, CS, F0, FK=FK, pbar=pbar, 
