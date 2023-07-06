@@ -166,8 +166,8 @@ def sweep_a_b(argv):
     # Run sweep
     filename = Path(
         f'raw_data_'
-        f'a_min={a_min}_a_max={a_max}_step_a={a_step}_'
-        f'b_min={b_min}_b_max={b_max}_step_b={b_step}_'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
         f'A={model_param.A}_lam={model_param.lam}_'
         f'T={model_param.T}_'        
         f'N={model_param.N}_dt={model_param.dt}.h5')
@@ -287,8 +287,8 @@ def sweep_A_lam_a_b(argv):
         f'raw_data_'
         f'A_min={lam_min}_A_max={lam_max}_A_step={lam_step}_'        
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
-        f'a_min={a_min}_a_max={a_max}_step_a={a_step}_'
-        f'b_min={b_min}_b_max={b_max}_step_b={b_step}_'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
         f'T={model_param.T}_'        
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
