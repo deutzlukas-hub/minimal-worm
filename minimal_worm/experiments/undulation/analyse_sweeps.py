@@ -43,6 +43,32 @@ def compute_average_sig_norm(h5: h5py, Delta_t: float = 2.0):
         
     return sig_avg_norm.reshape(h5.attrs['shape'])
 
+
+def compute_average_curvature_amplitude(h5: h5py, Delta_t: float = 2.0):
+    '''
+    Computes curvature amplitude    
+    '''    
+    t = h5['t'][:]    
+    T = h5.attrs['T']
+    
+    # Only look at last period
+    idx_arr = t >= (T - 1)
+
+    # For planar undulation, we only need to consider 
+    # the first element of the curvature vector                    
+    k_arr = h5['FS']['k'][:, idx_arr, 0, :]
+    
+    # Max and min along time dimension
+    k_max_arr = k_arr.max(axis = 1)     
+    k_min_arr = k_arr.min(axis = 1) 
+
+    # Choose midpoint along body 
+    idx_mp = int(k_arr.shape[-1] / 2)    
+    A_max = k_max_arr[:, idx_mp]
+    A_min = k_min_arr[:, idx_mp]
+    
+    return A_max, A_min
+
 def compute_swimming_speed(h5: h5py, Delta_t: float):
     '''
     Computes swimming speed for every simulation in h5
@@ -102,11 +128,14 @@ def analyse_a_b(
     E_dict = compute_energies(h5_raw_data) #Delta_t)
     k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
     sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
+    A_min, A_max = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
     
     h5_analysis.create_dataset('U', data = U)
     h5_analysis.create_dataset('k_norm', data = k_norm)
     h5_analysis.create_dataset('sig_norm', data = sig_norm)
-   
+    h5_analysis.create_dataset('A_max', data = A_max)
+    h5_analysis.create_dataset('A_min', data = A_min)
+       
     grp = h5_analysis.create_group('energies')
     
     for k, E in E_dict.items():
