@@ -67,7 +67,7 @@ def compute_average_curvature_amplitude(h5: h5py, Delta_t: float = 2.0):
     A_max = k_max_arr[:, idx_mp]
     A_min = k_min_arr[:, idx_mp]
     
-    return A_max, A_min
+    return A_max.reshape(h5.attrs['shape']), A_min.reshape(h5.attrs['shape'])
 
 def compute_swimming_speed(h5: h5py, Delta_t: float):
     '''
