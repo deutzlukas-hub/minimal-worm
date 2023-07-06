@@ -128,7 +128,7 @@ def analyse_a_b(
     E_dict = compute_energies(h5_raw_data) #Delta_t)
     k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
     sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
-    A_min, A_max = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
+    A_max, A_min = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
     
     h5_analysis.create_dataset('U', data = U)
     h5_analysis.create_dataset('k_norm', data = k_norm)
