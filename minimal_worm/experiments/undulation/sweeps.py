@@ -637,7 +637,7 @@ def sweep_c_lam(argv):
         
     # Run sweep
     filename = Path(
-        f'raw_data_'
+        f'raw_data_fang_yeng_'
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'A={model_param.A}_lam={model_param.lam}_T={model_param.T}_'        
