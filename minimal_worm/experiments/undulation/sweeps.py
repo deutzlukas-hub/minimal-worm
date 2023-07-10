@@ -762,16 +762,15 @@ def sweep_C_a_b(argv):
                 
     return
 
-def sweep_c_lam(argv):
+def sweep_mu_c_lam_fang_yen(argv):
     '''
     Sweeps over
+        - mu: Fluid viscosity
         - c = A/q where A is the undulation amplitude and q the wavenumber
         - lam undulation wavelength
     
-    Why do C. elegans modulate their gait?  
-    
     Fit frequency f over log of fluid viscosity mu to Fang Yeng data               
-    
+        
     Sweep over c lam grid for every (mu, f) pair.        
     '''    
 
@@ -815,7 +814,8 @@ def sweep_c_lam(argv):
 
     exp_mu_arr = np.arange(-3, 1.01, 1)
     mu_arr = 10**exp_mu_arr                
-    _, f_mu = fang_yen_fit_kinematics()    
+    
+    f_mu = fang_yen_fit_kinematics()[1]    
     T_c_arr = 1.0 / f_mu(exp_mu_arr)
 
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}
@@ -884,7 +884,7 @@ if __name__ == '__main__':
         
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 
+        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen',
             'c_lam_a_b', 'C_a_b', 'c_lam', 'lam_a_b', 'c_a_b'], help='Sweep to run')
         
     # Run function passed via command line
