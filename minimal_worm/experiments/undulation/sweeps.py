@@ -812,11 +812,12 @@ def sweep_mu_c_lam_fang_yen(argv):
     if len(cml_args) != 0: 
         print(cml_args)
 
-    exp_mu_arr = np.arange(-3, 1.01, 1)
-    mu_arr = 10**exp_mu_arr                
+    mu_exp_min, mu_exp_max, mu_exp_step = -3.0, 1.0, 1.0    
+    mu_exp_arr = np.arange(mu_exp_min, mu_exp_max + 0.1 * mu_exp_step, mu_exp_step)        
+    mu_arr = 10**mu_exp_arr                
     
     f_mu = fang_yen_fit_kinematics()[1]    
-    T_c_arr = 1.0 / f_mu(exp_mu_arr)
+    T_c_arr = 1.0 / f_mu(mu_exp_arr)
 
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}
     mu_param = {'v_arr': mu_arr.tolist(), 'round': 5, 'quantity': 'pascal*second'}
@@ -865,10 +866,10 @@ def sweep_mu_c_lam_fang_yen(argv):
     # Run sweep
     filename = Path(
         f'raw_data_fang_yeng_'
+        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
-        f'A={model_param.A}_lam={model_param.lam}_T={model_param.T}_'        
-        f'N={model_param.N}_dt={model_param.dt}.h5')
+        f'T={model_param.T}_N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
 
