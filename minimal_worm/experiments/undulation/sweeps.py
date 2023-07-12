@@ -36,7 +36,7 @@ def fang_yen_data():
     
     return mu_arr, lam_arr, f_arr
     
-def fang_yen_fit_kinematics():
+def fang_yen_fit():
     '''
     Fit sigmoids to fang yen data
     '''
@@ -778,6 +778,8 @@ def sweep_mu_c_lam_fang_yen(argv):
     sweep_parser = default_sweep_parameter()    
 
     # 
+    sweep_parser.add_argument('--mu', 
+        type=float, nargs=3, default = [-3, 1, 1.0])        
     sweep_parser.add_argument('--c', 
         type=float, nargs=3, default = [0.4, 1.4, 0.2])    
     sweep_parser.add_argument('--lam', 
@@ -812,11 +814,13 @@ def sweep_mu_c_lam_fang_yen(argv):
     if len(cml_args) != 0: 
         print(cml_args)
 
-    mu_exp_min, mu_exp_max, mu_exp_step = -3.0, 1.0, 1.0    
+    mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
+    mu_exp_step = sweep_param.mu[2]
+             
     mu_exp_arr = np.arange(mu_exp_min, mu_exp_max + 0.1 * mu_exp_step, mu_exp_step)        
     mu_arr = 10**mu_exp_arr                
     
-    f_mu = fang_yen_fit_kinematics()[1]    
+    f_mu = fang_yen_fit()[1]    
     T_c_arr = 1.0 / f_mu(mu_exp_arr)
 
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}

@@ -9,6 +9,11 @@ from typing import Tuple
 # Third-party
 import numpy as np
 from scipy.integrate import trapz
+from scipy.interpolate import RectBivariateSpline
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+from scipy.interpolate import splprep, splev
+from scipy.optimize import minimize_scalar
 
 class PostProcessor(object):
     '''
@@ -259,6 +264,120 @@ class PostProcessor(object):
         energy = trapz(power, dx=dt)
                           
         return energy
+    
+        
+    
+    
+    @staticmethod
+    def comp_optimal_c_and_wavelength(U, W, c_arr, lam_arr,
+            levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
+        '''
+        Finds the curvature amplitude wavenumber ratio c and 
+        wavelength lambda which minimizes the mechanical muscle work 
+        for contour lines of equal swimming speed.
+        
+        To achieve a swimming speed U < U_max, which c and lambda 
+        requires the least energy                                   
+        '''
+
+        U, W = U.T, W.T
+
+        # Interpolate swimming speed surface with Spline
+        U_interp = RectBivariateSpline(lam_arr, c_arr, U)    
+        # Interpolate mechanical work surface with Spline        
+        W_interp = RectBivariateSpline(lam_arr, c_arr, W)
+        
+        # Define finer grid
+        lam_arr = np.linspace(lam_arr.min(), lam_arr.max(), 100)
+        c_arr = np.linspace(c_arr.min(), c_arr.max(), 100)
+        
+        # Remesh the interpolated surface to the finer grid
+        U = U_interp(lam_arr, c_arr)
+        W = W_interp(lam_arr, c_arr)
+                                                              
+        # Use lam and c where U is maximal as initial guess 
+        j_max, i_max = np.unravel_index(U.argmax(), U.shape)
+        lam_max_0, c_max_0 = lam_arr[i_max], c_arr[j_max]                    
+        
+        # Minimize -U_interp to find lam and c where U is maximal
+        res = minimize(lambda x: -U_interp(x[0], x[1])[0], [lam_max_0, c_max_0], 
+            bounds=[(lam_arr.min(), lam_arr.max()), (c_arr.min(), c_arr.max())])
+        
+        lam_max, c_max = res.x[0], res.x[1]          
+        U_max = U_interp(lam_max, c_max)    
+        # Normalize speed by maximum speed
+        
+        U_over_U_max = U / U_max 
+        # Interpolate work surface with spline
+        LAM, C = np.meshgrid(lam_arr, c_arr)               
+        CS = plt.contour(LAM, C, U_over_U_max.T, levels)    
+        
+        lam_opt_arr = np.zeros_like(levels)
+        c_opt_arr = np.zeros_like(levels)
+        W_c_min_arr = np.zeros_like(levels)
+                            
+        # Iterate over contour lines    
+        for i, contours in enumerate(CS.collections):
+            
+            # W_min on contour line
+            W_c_min = W.max() 
+                
+            # Iterate over paths which make up the current
+            # contour line. If contour lines is a closed curve
+            # then it has only one path                 
+            for path in contours.get_paths():
+    
+                if not contours.get_paths():
+                    assert False, 'Contour line has not path'
+                        
+                # Get points which make up the current path                                
+                lam_on_path_arr = path.vertices[:, 0]
+                c_on_path_arr = path.vertices[:, 1]
+                                                
+                if len(lam_on_path_arr) <= 3:
+                    k = len(lam_on_path_arr)-1
+                else:
+                    k = 3
+
+                                                                 
+                # Compute B-spline representation of contour path
+                tck, _ = splprep([lam_on_path_arr, c_on_path_arr], s=0, k = k)                
+                # Increase path resolution by adding by more points
+
+                result = minimize_scalar(lambda u: W_interp.ev(*splev(u, tck)), 
+                    bounds=(0, 1), method='bounded')
+                
+                lam_min, c_min = splev(result.x, tck)                 
+                W_p_min = W_interp.ev(lam_min, c_min)
+                
+                # If minimum work on path is smaller than work on any 
+                # other path which belongs to the contour then set 
+                # it contour minimum
+                if W_p_min < W_c_min:
+                    
+                    W_c_min = W_p_min
+                    lam_opt = lam_min
+                    c_opt = c_min
+                            
+            lam_opt_arr[i] = lam_opt
+            c_opt_arr[i] = c_opt
+            W_c_min_arr[i] = W_c_min  
+
+        plt.close()
+        
+        result = {}
+        result['lam_max'], result['c_max'] = lam_max, c_max
+        result['lam_opt_arr'] = lam_opt_arr 
+        result['c_opt_arr'] = c_opt_arr
+        result['W_c_min_arr'] = W_c_min_arr
+        result['U_max'] = U_max
+        result['c_arr'] = c_arr
+        result['lam_arr'] = lam_arr
+        result['U'] = U
+        result['W'] = W
+        result['levels'] = levels
+                                
+        return result
     
     @staticmethod    
     def physical_2_dimless_parameters(param, **kwargs):
