@@ -1002,7 +1002,7 @@ if __name__ == '__main__':
         
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen',
+        choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 'sweep_C_c_lam',
             'c_lam_a_b', 'C_a_b', 'c_lam', 'lam_a_b', 'c_a_b'], help='Sweep to run')
         
     # Run function passed via command line
