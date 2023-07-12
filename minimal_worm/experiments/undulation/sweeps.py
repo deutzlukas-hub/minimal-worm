@@ -824,10 +824,10 @@ def sweep_C_c_lam(argv):
         'N': None, 'step': C_step, 'round': 1}    
 
     lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1*lam_step, 
-        'N': None, 'step': lam_step, 'round': 2, 'log': True}    
+        'N': None, 'step': lam_step, 'round': 2}    
 
     c_param = {'v_min': c_min, 'v_max': c_max + 0.1*c_step, 
-        'N': None, 'step': c_step, 'round': 2, 'log': True}
+        'N': None, 'step': c_step, 'round': 2}
 
     grid_param = {'C': C_param, 'lam': lam_param, 'c': c_param}
     
