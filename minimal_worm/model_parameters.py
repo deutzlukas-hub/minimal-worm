@@ -14,13 +14,14 @@ import pint
 # Default unit registry
 ureg = pint.UnitRegistry() 
 
+DIMLESS_PARAM_KEYS = ['g', 'C', 'Y', 'D', 'p', 'q', 'a', 'b']
+
 def parameter_parser():
 
     param = ArgumentParser(description = 'dimless-model-parameter')
         
     param.add_argument('--from_physical', action = BooleanOptionalAction, default = False, 
         help = 'If true, dimensionless parameters are calculated from given physical parameters')
-    
     # Characteristic time scale
     param.add_argument('--T_c', type = lambda s: float(s)*ureg.second,
         default = 1.0 * ureg.second, help = 'Characteristic time scale')
@@ -34,31 +35,36 @@ def parameter_parser():
         default = 1e-3*ureg.pascal*ureg.second, help = 'Fluid viscosity')                    
     param.add_argument('--E', type = lambda s: float(s)*ureg.pascal, 
         default = 1.21e5*ureg.pascal, help = "Young's modulus")
+    param.add_argument('--G', type = lambda s: float(s)*ureg.pascal, 
+        default = 1.21e5 / 3 *ureg.pascal , help = "Shear modulus")
     param.add_argument('--eta', type = lambda s: float(s)*ureg.pascal*ureg.second, 
         default = 1e-2 * 1.21e5*ureg.pascal*ureg.second, help = 'Extensional viscosity')
-    
+    param.add_argument('--nu', type = lambda s: float(s)*ureg.pascal*ureg.second, 
+        default = 1e-2 / 3 * 1.21e5*ureg.pascal*ureg.second, help = 'Shear viscosity')
+
     # Calculate default dimensionless parameter from default phyiscal parameter
     default_param = param.parse_args([])
-    physical_to_dimless_parameters(default_param)
-                                                          
+    
+    TDL = ToDimless(default_param)
+                                                              
     # Dimensionless model parameters                         
-    param.add_argument('--C', type = float, default = default_param.C, 
+    param.add_argument('--C', type = float, default = TDL.C, 
         help = "Normal and tangential linear drag coefficient ratio")
-    param.add_argument('--c_t', type = float, default = default_param.c_t, 
+    param.add_argument('--c_t', type = float, default = TDL.c_t, 
         help = 'Tangential linear drag coefficient')
-    param.add_argument('--D', type = float, default = default_param.D, 
+    param.add_argument('--D', type = float, default = TDL.D, 
         help = 'Tangential angular and linear drag coefficient ratio ')
-    param.add_argument('--Y', type = float, default = default_param.Y, 
+    param.add_argument('--Y', type = float, default = TDL.Y, 
         help = 'Normal and tangential angular drag coefficient ratio')
-    param.add_argument('--a', type = float, default = default_param.a, 
+    param.add_argument('--a', type = float, default = TDL.a, 
         help = 'Elastic and undulation time scale ratio')
-    param.add_argument('--b', type = float, default = default_param.b, 
+    param.add_argument('--b', type = float, default = TDL.b, 
         help = 'Viscous time scale ratio')
-    param.add_argument('--p', type = float, default = 1.0 / 3.0, 
+    param.add_argument('--p', type = float, default = TDL.p, 
         help = 'Shear viscosity over extensional viscosity ratio')
-    param.add_argument('--q', type = float, default = 1.0 / 3.0, 
+    param.add_argument('--q', type = float, default = TDL.q, 
         help = 'Shear viscosity over extensional viscosity ratio')
-    param.add_argument('--g', type = float, default = default_param.g, 
+    param.add_argument('--g', type = float, default = TDL.g, 
         help = 'Cross-sectional area over second moment of area')
     param.add_argument('--a_c', type = float, default = 1.0, 
         help = 'shear correction factors')
@@ -66,6 +72,22 @@ def parameter_parser():
         help = 'torsional correction factor')
     param.add_argument('--phi', default = None, 
         help = 'Cross-sectional radius shape function')
+    param.add_argument('--g_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, g is calculated from given physical parameters')
+    param.add_argument('--C_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, C is calculated from physical parameters')
+    param.add_argument('--Y_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, Y is calculated from given physical parameters')
+    param.add_argument('--D_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, D is calculated from given physical parameters')
+    param.add_argument('--p_from_phyiscal', action = BooleanOptionalAction, default = False, 
+        help = 'If true, p is calculated from given physical parameters')
+    param.add_argument('--p_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, q is calculated from given physical parameters')
+    param.add_argument('--q_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, a is calculated from given physical parameters')
+    param.add_argument('--b_from_physical', action = BooleanOptionalAction, default = False, 
+        help = 'If true, b is calculated from given physical parameters')
 
     # Simulation parameter         
     param.add_argument('--T', type = float, default = 5, 
@@ -78,6 +100,8 @@ def parameter_parser():
         default = None, help = 'Save simulation results for N_report centreline points')
     param.add_argument('--dt_report', type = lambda v: None if v.lower()=='none' else float(v), 
         default = None, help = 'Save simulation results only every dt_report time step')
+
+
 
     # Solver parameter
     param.add_argument('--fdo', type = int, default = 2, 
@@ -109,38 +133,212 @@ def RFT(param: Namespace):
         
     return c_t, C, D, Y   
     
+    
+class ToDimless():    
+    '''
+    Converts phyiscal to dimensionless parameters
+    '''
+    def __init__(self, param: Namespace):
+                
+        self.param = param
+        self.cache = {}
+    
+    @property
+    def alpha(self):
+        '''
+        Slenderness parameter
+        '''
+        
+        if 'alpha' in self.cache:
+            return self.cache['alpha']
+        
+        self.cache['alpha'] = 2*self.param.R/self.param.L0
+        
+        return self.cache['alpha']
+                             
+    @property
+    def A(self):
+        '''
+        Cross-sectional radius
+        '''
+                
+        if 'A' in self.cache:
+            return self.cache['A']
+        
+        self.cache['A'] = np.pi * self.param.R**2
+    
+        return self.cache['A']
+    
+    @property
+    def I(self):
+        '''
+        Second area moment of inertia
+        '''
+        
+        if 'I' in self.cache:
+            return self.cache['I']
+        
+        self.cache['I'] = 0.25 * np.pi * self.param.R**4
+    
+        return self.cache['I']
+
+    @property
+    def g(self):
+        '''
+        Dimensionless second moment of area over dimensionless
+        cross-sectional area  
+        '''
+        
+        if 'g' in self.cache:
+            return self.cache['g']
+        
+        self.cache['g'] = self.I * (self.A * self.param.L0**2)  
+        
+        return self.cache['g']
+        
+    @property        
+    def c_n(self):
+        '''
+        Normal linear drag coefficient
+        '''
+                
+        if 'c_n' in self.cache:
+            return self.cache['c_n']
+        
+        self.cache['c_n'] = 4 * np.pi / (np.log(2/self.alpha) + 0.5)
+        
+        return self.cache['c_n']
+
+    @property        
+    def c_t(self):
+        '''
+        Tangential linear drag coefficient
+        '''
+        
+        if 'c_t' in self.cache:
+            return self.cache['c_t']
+        
+        self.cache['c_t'] = 2 * np.pi / (np.log(2/self.alpha) - 0.5)
+        
+        return self.cache['c_t']
+
+    @property        
+    def y_t(self):
+        '''
+        Tangential angular drag coefficient
+        '''
+        
+        if 'y_t' in self.cache:
+            return self.cache['y_t']
+        
+        self.cache['y_t'] = 0.25 * np.pi * self.alpha**2
+        
+        return self.cache['y_t']
+
+    @property        
+    def y_n(self):
+        '''
+        Normal angular drag coefficient
+        '''
+        
+        if 'y_n' in self.cache:
+            return self.cache['y_n']
+        
+        self.cache['y_n'] = np.pi * self.alpha**2
+        
+        return self.cache['y_n']
+                        
+    @property        
+    def C(self):
+        '''
+        Linear drag coefficient ratio
+        '''
+                
+        return self.c_n / self.c_t 
+        
+    @property        
+    def Y(self):
+        '''
+        Angular drag coefficient ratio
+        '''
+        
+        return self.y_n / self.y_t
+        
+    @property        
+    def D(self):
+        '''
+        Tangential angular over linear drag coefficient ratio        
+        '''
+        
+        return self.y_t / self.c_t
+
+    @property        
+    def p(self):
+        '''
+        Tangential angular over linear drag coefficient ratio        
+        '''
+        
+        return self.param.G / self.param.E
+
+    @property        
+    def q(self):
+        '''
+        Tangential angular over linear drag coefficient ratio        
+        '''
+        
+        return self.param.nu / self.param.eta
+
+    @property
+    def tau(self):
+        '''
+        Relaxation time scale
+        '''
+        
+        return (self.param.mu*self.c_t*self.param.L0**4) / (self.param.E*self.I)
+
+    @property
+    def xi(self):
+        '''
+        Internal viscosity time scale
+        '''
+        
+        return self.param.eta / self.param.E
+        
+    @property
+    def a(self):
+        '''
+        Relaxation time scale ratio
+        '''
+                        
+        return self.tau / self.param.T_c
+            
+    @property
+    def b(self):
+        '''
+        Viscous time scale ratio
+        '''
+        
+        return self.xi / self.param.T_c
+
+            
 def physical_to_dimless_parameters(param: Namespace):
     '''
     Converts physical model parameters to dimensionless parameters    
     '''
-                                                
-    # Drag coefficient ratio
-    c_t, C, D, Y = RFT(param)
+    TDL = ToDimless(param)
     
-    _A = np.pi * param.R**2
-    I = 0.25 * np.pi * param.R**4
-                    
-    # Cross-sectional area divided by second moment of area 
-    g =  I / (_A * param.L0**2)                         
-    # Elastic time scale                
-    tau = (param.mu * param.L0**4 * c_t) / (param.E * I) 
-    # Viscous time scale
-    xi = param.eta / param.E
-    # Dimless elastic time scale ratio 
-    a = tau / param.T_c
-    # Dimless viscous time scale ratio 2        
-    b = xi / param.T_c 
+    for key in DIMLESS_PARAM_KEYS:
         
-    # Sanity check                                                                   
-    assert a.dimensionality == ureg.dimensionless.dimensionality
-    assert b.dimensionality == ureg.dimensionless.dimensionality
-    assert g.dimensionality == ureg.dimensionless.dimensionality
-
-    param.c_t = c_t
-               
-    param.C, param.D, param.Y = C, D, Y
-    param.a, param.b, param.g = a, b, g
-         
+        # If from_physical is true, then all dimless parameters 
+        # are calculated from the given physcial parameters 
+        if param.from_physical:
+            setattr(param , key, getattr(TDL, key))                
+        # If from phyiscal is false, then only those dimless 
+        # parameters are calculated from the given physical 
+        # parameters for which key_from_physical was set to True           
+        elif getattr(param, f'{key}_from_physical'):
+            setattr(param , key, getattr(TDL, key))                
+        
 class ModelParameter():
     '''
     Dimensionless model parameters

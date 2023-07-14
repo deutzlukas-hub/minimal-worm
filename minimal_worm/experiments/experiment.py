@@ -147,8 +147,7 @@ def simulate_experiment(worm: Worm,
     :param logger (logging.Logger): Progress logger
     :param F0 (simple_worm.FrameSequence): Initial frame
     '''
-    if param.from_physical:
-        physical_to_dimless_parameters(param)
+    physical_to_dimless_parameters(param)
     
     MP = ModelParameter(param)
                         
