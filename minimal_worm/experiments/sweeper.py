@@ -128,11 +128,12 @@ class Sweeper():
                     
         # If the simulation has failed then we reraise the exception
         # which has been passed upstream        
-        if e is not None:                
-            raise FWException(FS.pic, 
+        if e is not None:         
+                
+            raise FWException(None, 
                               param['T'], 
                               param['dt'], 
-                              FS.times[-1]) from e
+                              FS.t[-1]) from e
             
         # If simulation has finished succesfully then we return the relevant results 
         # for the logger
