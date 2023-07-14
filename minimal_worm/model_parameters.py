@@ -192,7 +192,7 @@ class ToDimless():
         if 'g' in self.cache:
             return self.cache['g']
         
-        self.cache['g'] = self.I * (self.A * self.param.L0**2)  
+        self.cache['g'] = self.I / (self.A * self.param.L0**2)  
         
         return self.cache['g']
         
@@ -343,7 +343,7 @@ class ModelParameter():
     '''
     Dimensionless model parameters
     '''
-    attr_keys = ['C', 'D', 'Y', 'phi']
+    attr_keys = ['C', 'D', 'Y', 'phi', 'p', 'q']
                                                     
     def __init__(self, param: Namespace):            
         '''        
@@ -365,15 +365,15 @@ class ModelParameter():
             if isinstance(v, float):
                 v = pint.Quantity(v, 'dimensionless')            
             setattr(self, k, v)
-                                                
-        self.S = np.diag([param.a_c * param.p, 
-            param.a_c * param.p, 1]) / (param.a * param.g)        
-        self.S_tilde = param.b * np.diag([param.a_c * param.q, 
-            param.a_c * param.q, 1]) / (param.a * param.g) 
+                                                                     
+        self.S = np.diag([param.a_c * param.p.magnitude, 
+            param.a_c * param.p.magnitude, 1]) / (param.a.magnitude * param.g.magnitude)        
+        self.S_tilde = param.b.magnitude * np.diag([param.a_c * param.q.magnitude, 
+            param.a_c * param.q.magnitude, 1]) / (param.a.magnitude * param.g.magnitude) 
         self.B  = np.diag([1, 1, 
-            param.a_T * param.p]) / param.a                         
-        self.B_tilde = param.b * np.diag([1, 1, 
-            param.a_T * param.q]) / param.a 
+            param.a_T * param.p.magnitude]) / param.a.magnitude                         
+        self.B_tilde = param.b.magnitude * np.diag([1, 1, 
+            param.a_T * param.q.magnitude]) / param.a.magnitude 
 
         return
         
