@@ -343,7 +343,7 @@ class ModelParameter():
     '''
     Dimensionless model parameters
     '''
-    attr_keys = ['C', 'D', 'Y', 'phi', 'p', 'q']
+    attr_keys = ['C', 'D', 'Y', 'g', 'a_c', 'a_T', 'p', 'q', 'a', 'b']
                                                     
     def __init__(self, param: Namespace):            
         '''        
@@ -359,33 +359,44 @@ class ModelParameter():
         :param a_T: Torsional shear correction factor
         :param phi: Cross-section radius shape function  
         '''
-                           
+        # All quantities should be dimensionless
         for k in ModelParameter.attr_keys:
             v = getattr(param, k)
-            if isinstance(v, float):
-                v = pint.Quantity(v, 'dimensionless')            
+            if isinstance(v, pint.Quantity):
+                assert v.dimensionless, 'quantity must be dimensionless'
+                v = v.magnitude
+            elif isinstance(v, float):
+                pass
+            else:
+                assert False, f'{k}={v}'           
             setattr(self, k, v)
-                                                                     
-        self.S = np.diag([param.a_c * param.p.magnitude, 
-            param.a_c * param.p.magnitude, 1]) / (param.a.magnitude * param.g.magnitude)        
-        self.S_tilde = param.b.magnitude * np.diag([param.a_c * param.q.magnitude, 
-            param.a_c * param.q.magnitude, 1]) / (param.a.magnitude * param.g.magnitude) 
-        self.B  = np.diag([1, 1, 
-            param.a_T * param.p.magnitude]) / param.a.magnitude                         
-        self.B_tilde = param.b.magnitude * np.diag([1, 1, 
-            param.a_T * param.q.magnitude]) / param.a.magnitude 
+
+        self.phi = param.phi
+                
+        self.S = 1.0 / (self.a * self.g) * ( 
+            np.diag([self.a_c * self.p, self.a_c * self.p, 1])
+        )                     
+        self.S_tilde = self.b / (self.a * self.g) * ( 
+            np.diag([self.a_c * self.q, self.a_c * self.q, 1])
+        )  
+        self.B  = 1.0 / self.a * ( 
+            np.diag([1, 1, param.a_T * self.p])
+        )                          
+        self.B_tilde = self.b / self.a * (
+            np.diag([1, 1, param.a_T * self.q])
+        )  
 
         return
         
     def to_fenics(self):
                      
-        C = ModelParameter.to_constant(self.C)
-        D = ModelParameter.to_constant(self.D)
-        Y = ModelParameter.to_constant(self.Y)
-        S = ModelParameter.to_constant(self.S)
-        S_tilde = ModelParameter.to_constant(self.S_tilde)
-        B = ModelParameter.to_constant(self.B)
-        B_tilde = ModelParameter.to_constant(self.B_tilde)
+        C = Constant(self.C)
+        D = Constant(self.D)
+        Y = Constant(self.Y)
+        S = Constant(self.S)
+        S_tilde = Constant(self.S_tilde)
+        B = Constant(self.B)
+        B_tilde = Constant(self.B_tilde)
         
         if self.phi is not None:
             S, S_tilde = self.phi**2 * S, self.phi**2 * S_tilde
@@ -393,12 +404,4 @@ class ModelParameter():
                     
         return C, D, Y, S, S_tilde, B, B_tilde       
     
-    @staticmethod
-    def to_constant(v):
-        
-        if isinstance(v, pint.Quantity):
-            v = Constant(v.magnitude)
-        else: 
-            v = Constant(v)
-        return v
                 
