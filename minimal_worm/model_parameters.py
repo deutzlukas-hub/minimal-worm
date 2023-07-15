@@ -82,7 +82,7 @@ def parameter_parser():
         help = 'If true, D is calculated from given physical parameters')
     param.add_argument('--p_from_phyiscal', action = BooleanOptionalAction, default = False, 
         help = 'If true, p is calculated from given physical parameters')
-    param.add_argument('--p_from_physical', action = BooleanOptionalAction, default = False, 
+    param.add_argument('--q_from_physical', action = BooleanOptionalAction, default = False, 
         help = 'If true, q is calculated from given physical parameters')
     param.add_argument('--a_from_physical', action = BooleanOptionalAction, default = False, 
         help = 'If true, a is calculated from given physical parameters')
