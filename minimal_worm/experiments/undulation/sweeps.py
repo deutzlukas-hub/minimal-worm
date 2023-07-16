@@ -16,7 +16,7 @@ from scipy.optimize import curve_fit
 import pint
 
 # Local imports
-from minimal_worm.experiments import Sweeper, Saver
+from minimal_worm.experiments import Sweeper
 from minimal_worm.experiments.undulation import UndulationExperiment
 from minimal_worm.experiments.undulation import create_storage_dir
 from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
@@ -1136,6 +1136,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
     # Run sweep
     filename = Path(
         f'raw_data_fang_yeng_'
+        f'eta_min={eta_min}_mu_max={eta_max}_mu_step={eta_step}_'        
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
