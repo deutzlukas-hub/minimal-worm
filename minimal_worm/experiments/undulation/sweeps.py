@@ -665,7 +665,7 @@ def sweep_C_a_b(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--C', 
-        type=float, nargs=3, default = [2.0, 10.0, 1.0])    
+        type=float, nargs=3, default = [1.0, 10.0, 2.0])    
         
     sweep_parser.add_argument('--a', 
         type=float, nargs=3, default = [-2, 3, 0.5])    
@@ -1291,8 +1291,8 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
         choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 
-            'eta_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 'c_lam', 
-            'lam_a_b', 'c_a_b'], help='Sweep to run')
+            'eta_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
+            'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
