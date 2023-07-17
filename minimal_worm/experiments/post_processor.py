@@ -265,11 +265,8 @@ class PostProcessor(object):
                           
         return energy
     
-        
-    
-    
     @staticmethod
-    def comp_optimal_c_and_wavelength(U, W, c_arr, lam_arr,
+    def comp_optimal_c_and_wavelength(U, W, A, c_arr, lam_arr,
             levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
         '''
         Finds the curvature amplitude wavenumber ratio c and 
@@ -280,12 +277,14 @@ class PostProcessor(object):
         requires the least energy                                   
         '''
 
-        U, W = U.T, W.T
-
+        U, W, A = U.T, W.T, A.T
+        
         # Interpolate swimming speed surface with Spline
         U_interp = RectBivariateSpline(lam_arr, c_arr, U)    
         # Interpolate mechanical work surface with Spline        
         W_interp = RectBivariateSpline(lam_arr, c_arr, W)
+        # Interpolate curvature amplitude
+        A_interp = RectBivariateSpline(lam_arr, c_arr, A)
         
         # Define finer grid
         lam_arr = np.linspace(lam_arr.min(), lam_arr.max(), 100)
@@ -294,7 +293,8 @@ class PostProcessor(object):
         # Remesh the interpolated surface to the finer grid
         U = U_interp(lam_arr, c_arr)
         W = W_interp(lam_arr, c_arr)
-                                                              
+        A = A_interp(lam_arr, c_arr)
+                                                                                                                      
         # Use lam and c where U is maximal as initial guess 
         j_max, i_max = np.unravel_index(U.argmax(), U.shape)
         lam_max_0, c_max_0 = lam_arr[i_max], c_arr[j_max]                    
@@ -302,20 +302,26 @@ class PostProcessor(object):
         # Minimize -U_interp to find lam and c where U is maximal
         res = minimize(lambda x: -U_interp(x[0], x[1])[0], [lam_max_0, c_max_0], 
             bounds=[(lam_arr.min(), lam_arr.max()), (c_arr.min(), c_arr.max())])
+                
+        lam_max, c_max = res.x[0], res.x[1]                  
+        A0_max = 2* np.pi * c_max / lam_max
         
-        lam_max, c_max = res.x[0], res.x[1]          
-        U_max = U_interp(lam_max, c_max)    
-        # Normalize speed by maximum speed
+        # Maximum swimming speed U_max 
+        U_max = U_interp(lam_max, c_max)
+        # Real curvature amplitude A_max             
+        A_max = A_interp(lam_max, c_max)
         
-        U_over_U_max = U / U_max 
-        # Interpolate work surface with spline
+        # Create contours for normalised swimming speed  
+        U_over_U_max = U / U_max              
         LAM, C = np.meshgrid(lam_arr, c_arr)               
         CS = plt.contour(LAM, C, U_over_U_max.T, levels)    
         
+        # Allocate arrays for optima on contours 
         lam_opt_arr = np.zeros_like(levels)
         c_opt_arr = np.zeros_like(levels)
         W_c_min_arr = np.zeros_like(levels)
-                            
+        A_opt_arr = np.zeros_like(levels)
+                                                        
         # Iterate over contour lines    
         for i, contours in enumerate(CS.collections):
             
@@ -342,14 +348,15 @@ class PostProcessor(object):
                                                                  
                 # Compute B-spline representation of contour path
                 tck, _ = splprep([lam_on_path_arr, c_on_path_arr], s=0, k = k)                
-                # Increase path resolution by adding by more points
-
+                
+                # Find minimum work along the contour path
                 result = minimize_scalar(lambda u: W_interp.ev(*splev(u, tck)), 
                     bounds=(0, 1), method='bounded')
                 
                 lam_min, c_min = splev(result.x, tck)                 
                 W_p_min = W_interp.ev(lam_min, c_min)
-                
+                A_min = A_interp.ev(lam_min, c_min)
+                                
                 # If minimum work on path is smaller than work on any 
                 # other path which belongs to the contour then set 
                 # it contour minimum
@@ -358,17 +365,25 @@ class PostProcessor(object):
                     W_c_min = W_p_min
                     lam_opt = lam_min
                     c_opt = c_min
+                    A_opt = A_min
                             
             lam_opt_arr[i] = lam_opt
             c_opt_arr[i] = c_opt
+            A_opt_arr[i] = A_opt
             W_c_min_arr[i] = W_c_min  
-
+            
         plt.close()
         
         result = {}
-        result['lam_max'], result['c_max'] = lam_max, c_max
+        result['lam_max'] = lam_max 
+        result['c_max'] = c_max
+        result['A0_max'] = A0_max                
+        result['A_max']= A_max        
+                        
         result['lam_opt_arr'] = lam_opt_arr 
         result['c_opt_arr'] = c_opt_arr
+        result['A0_opt_arr'] = 2 * np.pi * c_opt_arr / lam_opt_arr         
+        result['A_opt_arr'] = A_opt_arr
         result['W_c_min_arr'] = W_c_min_arr
         result['U_max'] = U_max
         result['c_arr'] = c_arr
