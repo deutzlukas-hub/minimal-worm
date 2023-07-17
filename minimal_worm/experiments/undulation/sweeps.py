@@ -33,14 +33,15 @@ def fang_yen_data():
     mu_arr = 10**(np.array([0.000, 0.966, 2.085, 2.482, 2.902, 3.142, 3.955, 4.448])-3) # Pa*s            
     lam_arr = np.array([1.516, 1.388, 1.328, 1.239, 1.032, 0.943, 0.856, 0.799])        
     f_arr = [1.761, 1.597, 1.383, 1.119, 0.790, 0.650, 0.257, 0.169] # Hz
+    A_arr = [2.872, 3.126, 3.290, 3.535, 4.772, 4.817, 6.226, 6.735]
     
-    return mu_arr, lam_arr, f_arr
+    return mu_arr, lam_arr, f_arr, A_arr
     
 def fang_yen_fit():
     '''
     Fit sigmoids to fang yen data
     '''
-    mu_arr, lam_arr, f_arr = fang_yen_data()
+    mu_arr, lam_arr, f_arr, _ = fang_yen_data()
 
     log_mu_arr = np.log10(mu_arr)
 
@@ -1136,7 +1137,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
     # Run sweep
     filename = Path(
         f'raw_data_fang_yeng_'
-        f'eta_min={eta_min}_mu_max={eta_max}_mu_step={eta_step}_'        
+        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'        
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
