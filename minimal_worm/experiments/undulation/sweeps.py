@@ -1208,8 +1208,8 @@ def sweep_C_mu_c_lam_fang_yen(argv):
 
     C_min, C_max= sweep_param.C[0], sweep_param.C[1]
     C_step = sweep_param.C[2]
-
-    C_param = {'C_min': C_min, 'v_max': C_max + 0.1*C_step, 
+    
+    C_param = {'v_min': C_min, 'v_max': C_max + 0.1*C_step, 
         'N': None, 'step': C_step, 'round': 1}    
 
     mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
