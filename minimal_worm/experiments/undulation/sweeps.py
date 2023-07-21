@@ -51,15 +51,18 @@ def david_gagnon():
     mu_arr_c = np.array([1., 1.96, 3.58, 11.94, 146.03, 214.06, 306.6, 429.09, 643.76 ])
     c_arr = np.array([3.77, 3.45, 4.39, 3.05, 2.22, 2.06, 2.06, 1.86, 1.72])
 
-    mu_arr = np.mean(np.vstack([mu_arr_U, mu_arr_f, mu_arr_c]), axis = 0)
-
-    return mu_arr, U_arr, f_arr, c_arr
+    mu_arr_A = np.array([1.01, 2., 3.65, 12.26, 148.32, 217.17, 310.38,433.76, 642.42])    
+    A_arr = np.array([0.26, 0.31, 0.33, 0.29, 0.24, 0.24, 0.22, 0.21,0.21])
+    
+    mu_arr = np.mean(np.vstack([mu_arr_U, mu_arr_f, mu_arr_c, mu_arr_A]), axis = 0)
+    
+    return mu_arr, U_arr, f_arr, c_arr, A_arr
 
 def fang_yen_fit():
     '''
     Fit sigmoids to fang yen data
     '''
-    mu_arr, lam_arr, f_arr, _ = fang_yen_data()
+    mu_arr, lam_arr, f_arr, A_arr = fang_yen_data()
 
     log_mu_arr = np.log10(mu_arr)
 
@@ -76,7 +79,17 @@ def fang_yen_fit():
     popt_f, _ = curve_fit(sigmoid, log_mu_arr, f_arr)
     f_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_f)
 
-    return lam_sig_fit, f_sig_fit
+    # Fit the sigmoid function to the data
+    
+    a0 = 3.95
+    b0 = 0.12    
+    c0 = 2.13
+    d0 = 2.94
+    p0 = [a0, b0, c0, d0] 
+    popt_A, _ = curve_fit(sigmoid, log_mu_arr, A_arr, p0=p0)
+    A_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_A)
+    
+    return lam_sig_fit, f_sig_fit, A_sig_fit
 
 def default_sweep_parameter():
     '''
@@ -902,6 +915,136 @@ def sweep_C_c_lam(argv):
                 
     return
 
+def sweep_C_eta_mu_fang_yen():
+    '''
+    Sweeps over
+    - drag coefficient ratio C
+    - internal viscosity eta  
+    - fluid viscosity mu         
+    
+    Fit frequency f, lam and A over log of fluid viscosity mu 
+    to Fang Yeng data                       
+    '''
+    sweep_parser = default_sweep_parameter()    
+    
+    sweep_parser.add_argument('--C', 
+        type=float, nargs=3, default = [1.5, 5.0, 0.5])    
+    sweep_parser.add_argument('--eta', 
+        type=float, nargs=3, default = [-3, -1, 0.5])                 
+    sweep_parser.add_argument('--mu', 
+        type=float, nargs=3, default = [-3, 1, 0.5])        
+    
+    sweep_parser.add_argument('--FK', nargs = '+', 
+        default = [
+            't', 'r', 'theta', 'd1', 'd2', 'd3', 'k', 'sig', 
+            'k_norm', 'sig_norm', 'r_t', 'w', 'k_t', 'sig_t', 
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+    )
+        
+    sweep_parser.add_argument('--FK_pool', nargs = '+', 
+        default = [
+            'r', 'k', 'sig', 'k_norm', 'sig_norm', 'r_t',
+            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
+    )
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+
+    # parse model parameter and convert to dictionary
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+    
+    model_param.use_c = False
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True
+
+    # print all command-line-arguments assuming that they
+    # are different from the default option 
+    cml_args = {k: v for k, v in vars(model_param).items() 
+        if v != model_parser.get_default(k)}
+    
+    if len(cml_args) != 0: 
+        print(cml_args)
+
+    C_min, C_max = sweep_param.C[0], sweep_param.C[1]
+    C_step = sweep_param.C[2]
+
+    eta_min, eta_max = sweep_param.eta[0], sweep_param.eta[1]
+    eta_step = sweep_param.eta[2]
+    
+    mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
+    mu_exp_step = sweep_param.mu[2]
+             
+    mu_exp_arr = np.arange(mu_exp_min, mu_exp_max + 0.1 * mu_exp_step, mu_exp_step)        
+    mu_arr = 10**mu_exp_arr                
+        
+    lam_mu, f_mu, A_mu = fang_yen_fit()    
+    T_c_arr = 1.0 / f_mu(mu_exp_arr)
+    lam_arr = lam_mu(mu_exp_arr)
+    A_arr = A_mu(mu_exp_arr)
+
+    C_param = {'v_min': C_min, 'v_max': C_max + 0.1*C_step, 
+        'N': None, 'step': C_step, 'round': 1}    
+    
+    eta_param = {'v_min': eta_min, 'v_max': eta_max + 0.1*eta_step, 
+        'N': None, 'step': eta_step, 'round': 0, 'log': True, 
+        'scale': model_param.E.magnitude, 'quantity': 'pascal*second'}    
+
+    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}    
+    lam_param = {'v_arr': lam_arr.tolist(), 'round': 2}
+    A_param = {'v_arr': A_arr.tolist(), 'round': 2}    
+    mu_param = {'v_arr': mu_arr.tolist(), 'round': 5, 'quantity': 'pascal*second'}
+        
+    grid_param = {  
+        'C': C_param,
+        'eta': eta_param,
+        ('T_c', 'mu', 'A', 'lam'): (T_c_param, mu_param, A_param, lam_param), 
+        }
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+         
+    PG = ParameterGrid(vars(model_param), grid_param)
+                    
+    if sweep_param.run:
+        # Run sweep
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            sweep_param.FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+    
+    # dt's number of decimal places 
+    # dp = len(str(Decimal(str(model_param.dt))).split('.')[1])  
+        
+    # Run sweep
+    filename = Path(
+        f'raw_data_fang_yeng_'
+        f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'
+        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'
+        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
+        f'T={model_param.T}_N={model_param.N}_dt={model_param.dt}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+
+    if sweep_param.analyse:
+        analyse_a_b(h5_filepath)
+
+    return
+
 def sweep_mu_c_lam_fang_yen(argv):
     '''
     Sweeps over
@@ -1184,7 +1327,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
     sweep_parser = default_sweep_parameter()    
      
     sweep_parser.add_argument('--C', 
-        type=float, nargs=3, default = [2.0, 10.0, 2.0])            
+        type=float, nargs=3, default = [1.5, 5.0, 0.5])            
     sweep_parser.add_argument('--mu', 
         type=float, nargs=3, default = [-3, 1, 1.0])        
     sweep_parser.add_argument('--c', 
