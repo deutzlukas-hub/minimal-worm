@@ -24,7 +24,7 @@ class UndulationExperiment(Experiment):
         parser = Experiment.parameter_parser()
             
         # Kinematic parameter
-        parser.add_argument('--A', type = bool, default = 4.0,
+        parser.add_argument('--A', type = float, default = 4.0,
             help = 'Dimensionless curvature amplitude')
         parser.add_argument('--use_c', action = BooleanOptionalAction, default = False,
             help = 'If True, uses curvature amplitude wavenumber ratio c to determine amplitude A')                       
