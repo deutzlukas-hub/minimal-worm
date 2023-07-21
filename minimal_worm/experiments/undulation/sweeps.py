@@ -915,7 +915,7 @@ def sweep_C_c_lam(argv):
                 
     return
 
-def sweep_C_eta_mu_fang_yen():
+def sweep_C_eta_mu_fang_yen(argv):
     '''
     Sweeps over
     - drag coefficient ratio C
@@ -1593,8 +1593,6 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
                 
     return
 
-
-
 if __name__ == '__main__':
         
     parser = ArgumentParser()
@@ -1602,7 +1600,7 @@ if __name__ == '__main__':
         choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 
             'eta_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
             'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen',
-            'C_eta_mu_c_lam_fang_yen'], help='Sweep to run')
+            'C_eta_mu_c_lam_fang_yen', 'C_eta_mu_fang_yen'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
