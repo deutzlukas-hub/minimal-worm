@@ -54,9 +54,26 @@ def david_gagnon():
     mu_arr_A = np.array([1.01, 2., 3.65, 12.26, 148.32, 217.17, 310.38,433.76, 642.42])    
     A_arr = np.array([0.26, 0.31, 0.33, 0.29, 0.24, 0.24, 0.22, 0.21,0.21])
     
-    mu_arr = np.mean(np.vstack([mu_arr_U, mu_arr_f, mu_arr_c, mu_arr_A]), axis = 0)
+    # average and convert to from mPa to Pa    
+    mu_arr = 1e-3 * np.mean(np.vstack([mu_arr_U, mu_arr_f, mu_arr_c, mu_arr_A]), axis = 0)
     
     return mu_arr, U_arr, f_arr, c_arr, A_arr
+
+def sznitzman():
+    '''
+    Sznitman 2010 (a) figure 4
+    '''
+    
+    mu_arr_U = np.array([0.95, 1.21, 1.52, 1.91, 3.46, 6.04, 11.54])
+    U_arr = np.array([0.37, 0.32, 0.35, 0.35, 0.33, 0.38,0.35])    
+    
+    mu_arr_f = np.array([0.99, 1.24, 1.57, 1.97, 3.59, 6.33, 12.01])                    
+    f_arr = np.array([2.02, 1.97, 1.87, 1.77, 1.62, 1.69, 1.67])
+
+    # average and convert to from mPa to Pa
+    mu_arr = np.mean(np.vstack([mu_arr_U, mu_arr_f]), axis = 0) * 1e-3
+    
+    return mu_arr, U_arr, f_arr
 
 def fang_yen_fit():
     '''
@@ -1577,6 +1594,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
     filename = Path(
         f'raw_data_fang_yeng_'
         f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'                
+        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'                        
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
