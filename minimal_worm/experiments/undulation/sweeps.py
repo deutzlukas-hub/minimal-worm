@@ -88,16 +88,15 @@ def fang_yen_fit():
         y = a / (1 + np.exp(-c*(x-b))) + d
         return y
 
-    # Fit the sigmoid function to the data
+    # Fit the sigmoid to wavelength
     popt_lam, _ = curve_fit(sigmoid, log_mu_arr,lam_arr)
     lam_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_lam)
 
-    # Fit the sigmoid function to the data
+    # Fit the sigmoid to frequency
     popt_f, _ = curve_fit(sigmoid, log_mu_arr, f_arr)
     f_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_f)
 
-    # Fit the sigmoid function to the data
-    
+    # Fit the sigmoid to amplitude
     a0 = 3.95
     b0 = 0.12    
     c0 = 2.13
@@ -107,6 +106,25 @@ def fang_yen_fit():
     A_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_A)
     
     return lam_sig_fit, f_sig_fit, A_sig_fit
+
+def fit_gagnon_sznitman():
+
+    mu_arr_0, U_arr_0 = david_gagnon()[:2]    
+    mu_arr_1, U_arr_1 =  sznitzman()[:2]
+
+    U_arr = np.concatenate((U_arr_0, U_arr_1))
+    mu_arr = np.concatenate((mu_arr_0, mu_arr_1))
+    log_mu_arr = np.log10(mu_arr)
+
+    # Fit 
+    def sigmoid(x, a, b, c, d):
+        y = a / (1 + np.exp(-c*(x-b))) + d
+        return y
+
+    popt_U, _ = curve_fit(sigmoid, log_mu_arr, U_arr)
+    U_sig_fit = lambda log_mu: sigmoid(log_mu, *popt_U)
+    
+    return U_sig_fit
 
 def default_sweep_parameter():
     '''
@@ -932,11 +950,12 @@ def sweep_C_c_lam(argv):
                 
     return
 
-def sweep_C_eta_mu_fang_yen(argv):
+def sweep_C_xi_mu_fang_yen(argv):
     '''
     Sweeps over
+    
     - drag coefficient ratio C
-    - internal viscosity eta  
+    - internal time scale xi/E
     - fluid viscosity mu         
     
     Fit frequency f, lam and A over log of fluid viscosity mu 
@@ -945,9 +964,9 @@ def sweep_C_eta_mu_fang_yen(argv):
     sweep_parser = default_sweep_parameter()    
     
     sweep_parser.add_argument('--C', 
-        type=float, nargs=3, default = [1.5, 5.0, 0.5])    
-    sweep_parser.add_argument('--eta', 
-        type=float, nargs=3, default = [-3, -1, 0.5])                 
+        type=float, nargs=3, default = [1.5, 4.0, 0.5])    
+    sweep_parser.add_argument('--xi', 
+        type=float, nargs=3, default = [-4, -1, 0.5])                 
     sweep_parser.add_argument('--mu', 
         type=float, nargs=3, default = [-3, 1, 0.5])        
     
@@ -985,8 +1004,12 @@ def sweep_C_eta_mu_fang_yen(argv):
     C_min, C_max = sweep_param.C[0], sweep_param.C[1]
     C_step = sweep_param.C[2]
 
-    eta_min, eta_max = sweep_param.eta[0], sweep_param.eta[1]
-    eta_step = sweep_param.eta[2]
+    xi_min, xi_max = sweep_param.xi[0], sweep_param.xi[1]
+    xi_step = sweep_param.xi[2]
+
+    xi_exp_arr = np.arange(xi_min, xi_max + 0.1*xi_step, xi_step) 
+    # The smaller xi the smaller the time step needs to be
+    dt_arr = [1e-4 if xi < -2 else 1e-3 for xi in xi_exp_arr]
     
     mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
     mu_exp_step = sweep_param.mu[2]
@@ -1001,11 +1024,13 @@ def sweep_C_eta_mu_fang_yen(argv):
 
     C_param = {'v_min': C_min, 'v_max': C_max + 0.1*C_step, 
         'N': None, 'step': C_step, 'round': 1}    
-    
-    eta_param = {'v_min': eta_min, 'v_max': eta_max + 0.1*eta_step, 
-        'N': None, 'step': eta_step, 'round': 0, 'log': True, 
+        
+    eta_param = {'v_min': xi_min, 'v_max': xi_max + 0.1*xi_step, 
+        'N': None, 'step': xi_step, 'round': 0, 'log': True, 
         'scale': model_param.E.magnitude, 'quantity': 'pascal*second'}    
 
+    dt_param = {'v_arr': dt_arr, 'round': 4}
+    
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}    
     lam_param = {'v_arr': lam_arr.tolist(), 'round': 2}
     A_param = {'v_arr': A_arr.tolist(), 'round': 2}    
@@ -1013,7 +1038,7 @@ def sweep_C_eta_mu_fang_yen(argv):
         
     grid_param = {  
         'C': C_param,
-        'eta': eta_param,
+        ('eta', 'dt'): (eta_param, dt_param),
         ('T_c', 'mu', 'A', 'lam'): (T_c_param, mu_param, A_param, lam_param), 
         }
 
@@ -1048,7 +1073,7 @@ def sweep_C_eta_mu_fang_yen(argv):
     filename = Path(
         f'raw_data_fang_yeng_'
         f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'
-        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'
+        f'xi_min={xi_min}_eta_max={xi_max}_eta_step={xi_step}_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'T={model_param.T}_N={model_param.N}_dt={model_param.dt}.h5')
     
@@ -1594,8 +1619,8 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
     filename = Path(
         f'raw_data_fang_yeng_'
         f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'                
-        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'                        
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
+        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'                        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'T={model_param.T}_'
@@ -1618,7 +1643,7 @@ if __name__ == '__main__':
         choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 
             'eta_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
             'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen',
-            'C_eta_mu_c_lam_fang_yen', 'C_eta_mu_fang_yen'], help='Sweep to run')
+            'C_eta_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
