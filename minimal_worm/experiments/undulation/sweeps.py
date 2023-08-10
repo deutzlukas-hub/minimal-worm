@@ -1073,7 +1073,7 @@ def sweep_C_xi_mu_fang_yen(argv):
     filename = Path(
         f'raw_data_fang_yeng_'
         f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'
-        f'xi_min={xi_min}_eta_max={xi_max}_eta_step={xi_step}_'
+        f'xi_min={xi_min}_xi_max={xi_max}_xi_step={xi_step}_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'T={model_param.T}_N={model_param.N}_dt={model_param.dt}.h5')
     
