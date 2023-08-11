@@ -5,7 +5,7 @@ Created on 17 Jun 2023
 '''
 # Built-in
 from sys import argv
-from typing import Tuple
+from typing import Tuple, List
 from argparse import ArgumentParser
 from pathlib import Path
         
@@ -17,7 +17,50 @@ from scipy.integrate import trapz
 # Local imports
 from minimal_worm.experiments import PostProcessor
 from minimal_worm import POWER_KEYS
-from minimal_worm.experiments.undulation import log_dir, sweep_dir
+
+    
+def analyse(
+        raw_data_filepath: Path,
+        analysis_filepath: Tuple[Path, None] = None,
+        what_to_calculate: List[str] = None
+):
+
+    if analysis_filepath is None:
+        assert raw_data_filepath.name.startswith('raw_data') 
+        analysis_filepath = ( raw_data_filepath.parent
+            / raw_data_filepath.name.replace('raw_data', 'analysis'))
+                
+    h5_raw_data = h5py.File(raw_data_filepath, 'r')
+    h5_analysis = h5py.File(analysis_filepath, 'w')
+
+    h5_analysis.attrs.update(h5_raw_data.attrs)
+    
+    # Compute energies from last period
+    T = h5_raw_data.attrs['T']
+    Delta_t = T - 1
+                
+    if what_to_calculate.U:                    
+        U = compute_swimming_speed(h5_raw_data, Delta_t)
+        h5_analysis.create_dataset('U', data = U)
+    if what_to_calculate.E:    
+        E_dict = compute_energies(h5_raw_data) 
+        grp = h5_analysis.create_group('energies')
+        for k, E in E_dict.items():
+            grp.create_dataset(k, data = E)         
+    if what_to_calculate.k_norm:
+        k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)        
+        h5_analysis.create_dataset('k_norm', data = k_norm)
+    if what_to_calculate.k_norm:
+        sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
+        h5_analysis.create_dataset('sig_norm', data = sig_norm)            
+    if what_to_calculate.A:    
+        A_max, A_min = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
+        h5_analysis.create_dataset('A_max', data = A_max)
+        h5_analysis.create_dataset('A_min', data = A_min)
+           
+    print(f'Saved Analysis to {analysis_filepath}')    
+    
+    return
 
 def compute_average_curvature_norm(h5: h5py, Delta_t: float = 2.0):
     '''
@@ -43,11 +86,43 @@ def compute_average_sig_norm(h5: h5py, Delta_t: float = 2.0):
         
     return sig_avg_norm.reshape(h5.attrs['shape'])
 
-
 def compute_average_curvature_amplitude(h5: h5py, Delta_t: float = 2.0):
     '''
     Computes curvature amplitude    
     '''    
+    t = h5['t'][:]    
+    T = h5.attrs['T']
+    
+    # Only look at last period
+    idx_arr = t >= (T - 1)
+
+    # For planar undulation, we only need to consider 
+    # the first element of the curvature vector                    
+    k_arr = h5['FS']['k'][:, idx_arr, 0, :]
+    
+    # Max and min along time dimension
+    k_max_arr = k_arr.max(axis = 1)     
+    k_min_arr = k_arr.min(axis = 1) 
+
+    # Choose midpoint along body 
+    idx_mp = int(k_arr.shape[-1] / 2)    
+    A_max = k_max_arr[:, idx_mp]
+    A_min = k_min_arr[:, idx_mp]
+    
+    return A_max.reshape(h5.attrs['shape']), A_min.reshape(h5.attrs['shape'])
+
+def compute_undulation_wavelength(h5: h5py, Delta_t: float = 2.0):
+    '''
+    Compute undulation wavelength
+    '''    
+    
+    # 1.Fit straight to centre 80 % body length
+    # 2.This gives me undulation speed c. given the undulation 
+    # frequency 
+    # 3.Calculate wavelength from undulation speed
+    
+    # TODO: Let's do this tomorrow!
+        
     t = h5['t'][:]    
     T = h5.attrs['T']
     
@@ -106,44 +181,6 @@ def compute_energies(h5: h5py): #Delta_t: float = 2.0):
         
     return E_dict
 
-def analyse_a_b(
-        raw_data_filepath: Path,
-        analysis_filepath: Tuple[Path, None] = None):
-
-    if analysis_filepath is None:
-        assert raw_data_filepath.name.startswith('raw_data') 
-        analysis_filepath = ( raw_data_filepath.parent
-            / raw_data_filepath.name.replace('raw_data', 'analysis'))
-                
-    h5_raw_data = h5py.File(raw_data_filepath, 'r')
-    h5_analysis = h5py.File(analysis_filepath, 'w')
-
-    h5_analysis.attrs.update(h5_raw_data.attrs)
-    
-    # Compute energies from last period
-    T = h5_raw_data.attrs['T']
-    Delta_t = T - 1
-                
-    U = compute_swimming_speed(h5_raw_data, Delta_t)
-    E_dict = compute_energies(h5_raw_data) #Delta_t)
-    k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)
-    sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
-    A_max, A_min = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
-    
-    h5_analysis.create_dataset('U', data = U)
-    h5_analysis.create_dataset('k_norm', data = k_norm)
-    h5_analysis.create_dataset('sig_norm', data = sig_norm)
-    h5_analysis.create_dataset('A_max', data = A_max)
-    h5_analysis.create_dataset('A_min', data = A_min)
-       
-    grp = h5_analysis.create_group('energies')
-    
-    for k, E in E_dict.items():
-
-        grp.create_dataset(k, data = E) 
-
-    print(f'Saved Analysis to {analysis_filepath}')
-         
 if __name__ == '__main__':
     
     parser = ArgumentParser()
