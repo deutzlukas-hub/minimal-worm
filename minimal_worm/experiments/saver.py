@@ -64,9 +64,9 @@ class Saver(ABC):
         CS = data['CS']
                                               
         # Make backwards compatible after name change 
-        if 'k' in CS:
+        if hasattr(CS,'k'):
             CS['k0'] = CS['k']
-        if 'sig' in CS:                                                                          
+        if hasattr(CS, 'sig'):                                                                          
             CS['sig0'] = CS['sig0']
         # HDF5 data file
                                                                                                                                                                  
