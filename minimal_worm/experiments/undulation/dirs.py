@@ -21,7 +21,15 @@ if not sweep_dir.is_dir(): sweep_dir.mkdir(exist_ok = True)
 if not fig_dir.is_dir(): fig_dir.mkdir(parents = True, exist_ok = True)
 if not video_dir.is_dir(): video_dir.mkdir(parents = True, exist_ok=True)
 
-storage_dir = Path.home() / 'storage/minimal-worm/results/undulation'  
+
+storage_dir = Path('/home/lukas/storage/minimal-worm/results/undulation')  
+base_path = Path('/home/lukas/git/minimal-worm/minimal_worm/experiments/undulation')
+
+storage_dir = storage_dir.relative_to('/home/lukas/')
+base_path = base_path.relative_to('/home/lukas/')
+relative_path = Path(*(['../']*len(base_path.parts)))
+
+storage_dir = relative_path / storage_dir
 
 def create_storage_dir():
         
