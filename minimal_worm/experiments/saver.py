@@ -65,11 +65,11 @@ class Saver(ABC):
                                               
         # Make backwards compatible after name change 
         if hasattr(CS,'k'):
-            CS['k0'] = CS['k']
+            CS.k0 = CS.k
         if hasattr(CS, 'sig'):                                                                          
-            CS['sig0'] = CS['sig0']
-        # HDF5 data file
-                                                                                                                                                                 
+            CS.sig0 = CS.sig0
+        
+        # HDF5 data file                                                                                                                                                                 
         h5 = h5py.File(filepath, 'w')
         h5.attrs['grid_filename'] = PG.filename + '.json'       
         h5.attrs['shape'] = PG.shape        
