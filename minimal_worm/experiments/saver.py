@@ -67,7 +67,7 @@ class Saver(ABC):
         if hasattr(CS,'k'):
             CS.k0 = CS.k
         if hasattr(CS, 'sig'):                                                                          
-            CS.sig0 = CS.sig0
+            CS.sig0 = CS.sig
         
         # HDF5 data file                                                                                                                                                                 
         h5 = h5py.File(filepath, 'w')
