@@ -1201,7 +1201,7 @@ def sweep_mu_c_lam_fang_yen(argv):
             sweep_param.worker, 
             PG, 
             UndulationExperiment.stw_control_sequence, 
-            sweep_param.FK,
+            FK,
             log_dir, 
             sim_dir, 
             sweep_param.overwrite, 
@@ -1223,7 +1223,7 @@ def sweep_mu_c_lam_fang_yen(argv):
     h5_filepath = sweep_dir / filename
 
     if sweep_param.pool:        
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
         
     # Analyse simulation results
     if sweep_param.analyse:
@@ -1457,7 +1457,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
             sweep_param.worker, 
             PG, 
             UndulationExperiment.stw_control_sequence, 
-            sweep_param.FK,
+            FK,
             log_dir, 
             sim_dir, 
             sweep_param.overwrite, 
@@ -1480,7 +1480,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
     h5_filepath = sweep_dir / filename
 
     if sweep_param.pool:        
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
         analyse(h5_filepath, what_to_calculate=sweep_param)
@@ -1594,7 +1594,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
             sweep_param.worker, 
             PG, 
             UndulationExperiment.stw_control_sequence, 
-            sweep_param.FK,
+            FK,
             log_dir, 
             sim_dir, 
             sweep_param.overwrite, 
@@ -1618,7 +1618,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
     h5_filepath = sweep_dir / filename
 
     if sweep_param.pool:        
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
         
     # Analyse simulation results
     if sweep_param.analyse:
