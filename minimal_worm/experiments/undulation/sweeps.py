@@ -21,7 +21,7 @@ from minimal_worm.worm import CONTROL_KEYS
 from minimal_worm.experiments import Sweeper
 from minimal_worm.experiments.undulation import UndulationExperiment
 from minimal_worm.experiments.undulation import create_storage_dir
-from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
+from minimal_worm.experiments.undulation.analyse_sweeps import analyse
 
 ureg = pint.UnitRegistry()
 
@@ -165,9 +165,9 @@ def default_sweep_parameter():
         help = 'If true, save curvature')
     parser.add_argument('--sig', action=BooleanOptionalAction, default = True,
         help = 'If true, saved shear-stretch')
-    parser.add_argument('--k_norm', action=BooleanOptionalAction, default = False,
+    parser.add_argument('--k_norm', action=BooleanOptionalAction, default = True,
         help = 'If true, save L2 norm of the real and preferred curvature difference')
-    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = False,
+    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = True,
         help = 'If true, save L2 norm of the real and preferred shear-stretch difference')
 
     # Velocity keys
@@ -211,6 +211,14 @@ def default_sweep_parameter():
         help = 'If true, save controls')
     parser.add_argument('--sig0', action=BooleanOptionalAction, default = True,
         help = 'If true, save controls')
+
+    # Analyse  
+    parser.add_argument('--U', action=BooleanOptionalAction, default = True,
+        help = 'If true, calculate swimming speed U')
+    parser.add_argument('--E', action=BooleanOptionalAction, default = True,
+        help = 'If true, calculate L2 norm between real and preferred curvature')
+    parser.add_argument('--A_real', action=BooleanOptionalAction, default = True,
+        dest = 'A', help = 'If true, calculate real curvature amplitude')
 
     return parser
 
@@ -304,7 +312,7 @@ def sweep_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -418,7 +426,7 @@ def sweep_A_lam_a_b(argv):
 
     # Anaylse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -527,7 +535,7 @@ def sweep_lam_a_b(argv):
 
     # Anaylse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -636,7 +644,7 @@ def sweep_c_a_b(argv):
         
     # Analyse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -748,7 +756,7 @@ def sweep_c_lam_a_b(argv):
 
     # Analyse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -856,7 +864,7 @@ def sweep_C_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -970,7 +978,7 @@ def sweep_C_c_lam(argv):
 
     # Analyse simulation result
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -1099,7 +1107,7 @@ def sweep_C_xi_mu_fang_yen(argv):
 
     # Analyse simulations results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
 
     return
 
@@ -1219,7 +1227,7 @@ def sweep_mu_c_lam_fang_yen(argv):
         
     # Analyse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -1350,7 +1358,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
         
     # Analyse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -1475,7 +1483,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
 
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
@@ -1614,7 +1622,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
         
     # Analyse simulation results
     if sweep_param.analyse:
-        analyse_a_b(h5_filepath)
+        analyse(h5_filepath, what_to_calculate=sweep_param)
                 
     return
 
