@@ -16,11 +16,11 @@ from scipy.optimize import curve_fit
 import pint
 
 # Local imports
+from minimal_worm import FRAME_KEYS
 from minimal_worm.experiments import Sweeper
 from minimal_worm.experiments.undulation import UndulationExperiment
 from minimal_worm.experiments.undulation import create_storage_dir
 from minimal_worm.experiments.undulation.analyse_sweeps import analyse_a_b
-
 
 ureg = pint.UnitRegistry()
 
@@ -130,7 +130,7 @@ def default_sweep_parameter():
     '''
     Default sweep hyper parameter
     '''            
-    parser = ArgumentParser(description = 'sweep-parameter')
+    parser = ArgumentParser(description = 'sweep-parameter', allow_abbrev=False)
 
     parser.add_argument('--worker', type = int, default = 10,
         help = 'Number of processes')         
@@ -146,6 +146,70 @@ def default_sweep_parameter():
         help = 'If true, exception handling is turned off which is helpful for debugging')    
     parser.add_argument('--save_to_storage', action=BooleanOptionalAction, default = False,
         help = 'If true, results are saved to external storage filesystem specified in dirs.py')         
+    
+    # Frame keys
+    parser.add_argument('--t', action=BooleanOptionalAction, default = True,
+        help = 'If true, save time stamps')
+    parser.add_argument('--r', action=BooleanOptionalAction, default = True,
+        help = 'If true, save centreline coordinates')
+    parser.add_argument('--theta', action=BooleanOptionalAction, default = True,
+        help = 'If true, save Euler angles')    
+    parser.add_argument('--d1', action=BooleanOptionalAction, default = False,
+        help = 'If true, save director 1')
+    parser.add_argument('--d2', action=BooleanOptionalAction, default = False,
+        help = 'If true, save director 2')
+    parser.add_argument('--d3', action=BooleanOptionalAction, default = False,
+        help = 'If true, save director 3')
+    parser.add_argument('--k', action=BooleanOptionalAction, default = True,
+        help = 'If true, save curvature')
+    parser.add_argument('--sig', action=BooleanOptionalAction, default = True,
+        help = 'If true, saved shear-stretch')
+    parser.add_argument('--k_norm', action=BooleanOptionalAction, default = False,
+        help = 'If true, save L2 norm of the real and preferred curvature difference')
+    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = True,
+        help = 'If true, save L2 norm of the real and preferred shear-stretch difference')
+
+    # Velocity keys
+    parser.add_argument('--r_t', action=BooleanOptionalAction, default = False,
+        help = 'If trues, save centreline velocity')
+    parser.add_argument('--w', action=BooleanOptionalAction, default = False,
+        help = 'If true, save angular velocity')
+    parser.add_argument('--k_t', action=BooleanOptionalAction, default = False,
+        help = 'If true, save curvature strain rate')
+    parser.add_argument('--sig_t', action=BooleanOptionalAction, default = False,
+        help = 'If true, save shear-stretch strain rate')
+    
+    # Forces and torque keys
+    parser.add_argument('--f_F', action=BooleanOptionalAction, default = False,
+        help = 'If true, save fluid drag force density')
+    parser.add_argument('--l_F', action=BooleanOptionalAction, default = False,
+        help = 'If true, save fluid drag torque density')
+    parser.add_argument('--f_M', action=BooleanOptionalAction, default = False,
+        help = 'If true, save muscle force density')
+    parser.add_argument('--l_M', action=BooleanOptionalAction, default = False,
+        help = 'If true, save muscle torque density')
+    parser.add_argument('--N_force', action=BooleanOptionalAction, default = False,
+        dest = 'N', help = 'If true, save internal force resultant')
+    parser.add_argument('--M_torque', action=BooleanOptionalAction, default = False,
+        dest = 'M', help = 'If true, save internal torque resultant')
+
+    # Power keys
+    parser.add_argument('--D_F_dot', action=BooleanOptionalAction, default = True,
+        help = 'If true, save fluid dissipation rate')
+    parser.add_argument('--D_I_dot', action=BooleanOptionalAction, default = True,
+        help = 'If true, save internal dissipation rate')
+    parser.add_argument('--W_dot', action=BooleanOptionalAction, default = True,
+        help = 'If true, save mechanical muscle power')
+    parser.add_argument('--V_dot', action=BooleanOptionalAction, default = True,
+        help = 'If true, save potential rate')
+    parser.add_argument('--V', action=BooleanOptionalAction, default = True,
+        help = 'If true, save potential')
+    
+    # Control key
+    parser.add_argument('--k0', action=BooleanOptionalAction, default = True,
+        help = 'If true, save controls')
+    parser.add_argument('--sig0', action=BooleanOptionalAction, default = True,
+        help = 'If true, save controls')
 
     return parser
 
@@ -961,6 +1025,8 @@ def sweep_C_xi_mu_fang_yen(argv):
     Fit frequency f, lam and A over log of fluid viscosity mu 
     to Fang Yeng data                       
     '''
+    
+    
     sweep_parser = default_sweep_parameter()    
     
     sweep_parser.add_argument('--C', 
@@ -970,21 +1036,11 @@ def sweep_C_xi_mu_fang_yen(argv):
     sweep_parser.add_argument('--mu', 
         type=float, nargs=3, default = [-3, 1, 0.5])        
     
-    sweep_parser.add_argument('--FK', nargs = '+', 
-        default = [
-            't', 'r', 'theta', 'd1', 'd2', 'd3', 'k', 'sig', 
-            'k_norm', 'sig_norm', 'r_t', 'w', 'k_t', 'sig_t', 
-            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
-    )
-        
-    sweep_parser.add_argument('--FK_pool', nargs = '+', 
-        default = [
-            'r', 'k', 'sig', 'k_norm', 'sig_norm', 'r_t',
-            'W_dot', 'D_F_dot', 'D_I_dot', 'V_dot']
-    )
-
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
+    # Get frame keys which are set be saved
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+        
     # parse model parameter and convert to dictionary
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
@@ -1055,7 +1111,7 @@ def sweep_C_xi_mu_fang_yen(argv):
             sweep_param.worker, 
             PG, 
             UndulationExperiment.stw_control_sequence, 
-            sweep_param.FK,
+            FK,
             log_dir, 
             sim_dir, 
             sweep_param.overwrite, 
@@ -1065,10 +1121,7 @@ def sweep_C_xi_mu_fang_yen(argv):
 
     PG_filepath = PG.save(log_dir)
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
-    
-    # dt's number of decimal places 
-    # dp = len(str(Decimal(str(model_param.dt))).split('.')[1])  
-        
+            
     # Run sweep
     filename = Path(
         f'raw_data_fang_yeng_'
@@ -1080,7 +1133,7 @@ def sweep_C_xi_mu_fang_yen(argv):
     h5_filepath = sweep_dir / filename
 
     if sweep_param.pool:        
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, sweep_param.FK_pool)
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK)
 
     if sweep_param.analyse:
         analyse_a_b(h5_filepath)

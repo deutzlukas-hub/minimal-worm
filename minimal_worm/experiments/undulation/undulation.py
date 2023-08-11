@@ -27,9 +27,9 @@ class UndulationExperiment(Experiment):
         parser.add_argument('--A', type = float, default = 4.0,
             help = 'Dimensionless curvature amplitude')
         parser.add_argument('--use_c', action = BooleanOptionalAction, default = False,
-            help = 'If True, uses curvature amplitude wavenumber ratio c to determine amplitude A')                       
+            help = 'If True, curvature amplitude A is determined from shape factor c')                       
         parser.add_argument('--c', type = float, default = 1.0,
-            help= 'Curvature amplitude wavenumber ratio')                           
+            help= 'Shape factor c=A/q')                           
         parser.add_argument('--lam', type = float, default = 1.0,
             help = 'Dimensionless wavelength')
                                         
@@ -71,4 +71,4 @@ class UndulationExperiment(Experiment):
                   
         sig = Constant((0, 0, 0))    
     
-        return {'k': k, 'sig': sig, 't': t}
+        return {'k0': k, 'sig0': sig, 't': t}
