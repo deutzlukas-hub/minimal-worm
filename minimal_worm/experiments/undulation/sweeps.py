@@ -167,7 +167,7 @@ def default_sweep_parameter():
         help = 'If true, saved shear-stretch')
     parser.add_argument('--k_norm', action=BooleanOptionalAction, default = False,
         help = 'If true, save L2 norm of the real and preferred curvature difference')
-    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = True,
+    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = False,
         help = 'If true, save L2 norm of the real and preferred shear-stretch difference')
 
     # Velocity keys
@@ -203,7 +203,7 @@ def default_sweep_parameter():
         help = 'If true, save mechanical muscle power')
     parser.add_argument('--V_dot', action=BooleanOptionalAction, default = True,
         help = 'If true, save potential rate')
-    parser.add_argument('--V', action=BooleanOptionalAction, default = True,
+    parser.add_argument('--V', action=BooleanOptionalAction, default = False,
         help = 'If true, save potential')
     
     # Control key
