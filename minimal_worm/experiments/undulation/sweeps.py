@@ -308,7 +308,6 @@ def sweep_a_b(argv):
                 
     return
 
-
 def sweep_A_lam_a_b(argv):
     '''
     Parameter sweep undulation parameter A, lam
@@ -560,7 +559,7 @@ def sweep_c_a_b(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -666,7 +665,7 @@ def sweep_c_lam_a_b(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
@@ -782,7 +781,7 @@ def sweep_C_a_b(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -892,7 +891,7 @@ def sweep_C_c_lam(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -1002,7 +1001,7 @@ def sweep_C_xi_mu_fang_yen(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
                 
     # Parse model parameter 
     model_parser = UndulationExperiment.parameter_parser()
@@ -1133,7 +1132,7 @@ def sweep_mu_c_lam_fang_yen(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -1253,7 +1252,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
     # for ever frame key and control key which can be set to true
     # if it should be saved 
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -1384,7 +1383,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
     # if it should be saved                 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
@@ -1512,7 +1511,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
     # if it should be saved 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
-    CK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
