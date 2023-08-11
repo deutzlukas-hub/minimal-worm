@@ -32,7 +32,7 @@ except ModuleNotFoundError:
 from dolfin import set_log_level, LogLevel
 set_log_level(LogLevel.ERROR)
 
-CONTROL_KEYS = ['k', 'sig', 't']
+CONTROL_KEYS = ['k0', 'sig0', 't']
 
 def grad(f):
     return Dx(f, 0)
@@ -366,31 +366,31 @@ class Worm:
         self.C, self.D, self.Y, self.S, self.S_tilde, self.B, self.B_tilde = MP.to_fenics()
 
         # If the preferred curvature is specified as a Fenics.Expressions 
-        # or Constant then assign epxression to self.k_pref   
-        if isinstance(CS['k'], (Expression, Constant)):
-            self.k_pref = CS['k']
+        # or Constant then assign epxression to self.k0   
+        if isinstance(CS['k0'], (Expression, Constant)):
+            self.k0 = CS['k0']
         # If the preffered curvature is specified in terms of a numpy.ndarray 
-        # then assign fenics.Function to self.k_pref                 
-        elif isinstance(CS['k'], np.ndarray):        
-            assert CS['k'].shape[0] == self.n, ("Preferred curvature vector" 
+        # then assign fenics.Function to self.k0                 
+        elif isinstance(CS['k0'], np.ndarray):        
+            assert CS['k0'].shape[0] == self.n, ("Preferred curvature vector" 
                 "not available for every simulation step.")            
-            self.k_pref = Function(self.V3)
+            self.k0 = Function(self.V3)
         else:
-            assert False, ("Preferred curvature CS['k'] must be one of" 
+            assert False, ("Preferred curvature CS['k0'] must be one of" 
                 "[Fenics.Expression, Fenics.Constant, np.ndarray]")
 
         # If the preferred shear/stretch is specified as a Fenics.Expressions 
-        # or Constant then assign epxression to self.sig_pref   
-        if isinstance(CS['sig'], (Expression, Constant)):
-            self.sig_pref = CS['sig']
+        # or Constant then assign epxression to self.sig0   
+        if isinstance(CS['sig0'], (Expression, Constant)):
+            self.sig0 = CS['sig0']
         # If the preffered shear/strech is specified in terms of a numpy.ndarray 
-        # then assign fenics.Function to self.sig_pref                 
-        elif isinstance(CS['sig'], np.ndarray):        
-            assert CS['sig'].shape[0] == self.n, ("Preferred shear/stretch vector" 
+        # then assign fenics.Function to self.sig0                 
+        elif isinstance(CS['sig0'], np.ndarray):        
+            assert CS['sig0'].shape[0] == self.n, ("Preferred shear/stretch vector" 
                 "not available for every simulation step.")            
-            self.sig_pref = Function(self.V3)
+            self.sig0 = Function(self.V3)
         else:
-            assert False, ("Preferred shear/stretch CS['sig'] must be one of" 
+            assert False, ("Preferred shear/stretch CS['sig0'] must be one of" 
                 "[Fenics.Expression, Fenics.Constant, np.ndarray]")
                     
         self._assign_initial_values(F0)
@@ -466,16 +466,16 @@ class Worm:
         # If CS['k_pref'] is a Fenics.Expression then
         # then we update the Fenics.Constant
         # which is used as the time variable in the expression
-        if isinstance(CS['k'], Expression):                                        
+        if isinstance(CS['k0'], Expression):                                        
             CS['t'].assign(self._t)        
         # If CS['k_pref'] is a numpy.ndarray then 
-        # self.k_pref is a Fenics.Function and we  
-        # assign row i to self.k_pref        
-        elif isinstance(CS['k'], np.ndarray):
-            v2f(self.k_pref, CS['k'][self.i, :])                        
+        # self.k0 is a Fenics.Function and we  
+        # assign row i to self.k0        
+        elif isinstance(CS['k0'], np.ndarray):
+            v2f(self.k0, CS['k0'][self.i, :])                        
         
-        if isinstance(CS['sig'], np.ndarray):                                        
-            v2f(self.sig_pref, CS['sig'][self.i, :])                
+        if isinstance(CS['sig0'], np.ndarray):                                        
+            v2f(self.sig0, CS['sig0'][self.i, :])                
             
         return
 
@@ -492,7 +492,7 @@ class Worm:
         u = Function(self.W)
         solve(self.F_op == self.L, u, solver_parameters=self.solver)
         assert not np.isnan(u.vector().get_local()).any(), (
-            f'Solution at t={self.t:.{self.D}f} contains nans!')
+            f'Solution at t={self._t:.{self.D}f} contains nans!')
         
         self._r, self._theta = u.split(deepcopy=True)
 
@@ -550,8 +550,8 @@ class Worm:
 
         C = {}
 
-        for k in ['sig', 'k']:
-            v_pref = getattr(self, f'{k}_pref')                          
+        for k in ['sig0', 'k0']:
+            v_pref = getattr(self, k)                          
             if isinstance(v_pref, Expression):
                 v_arr = f2n(project(v_pref, self.V3))
             elif isinstance(v_pref, Constant):
@@ -730,7 +730,7 @@ class Worm:
         Internal force resultant
         '''
 
-        return Q.T * (self.S * (sig - self.sig_pref) + self.S_tilde * sig_t)
+        return Q.T * (self.S * (sig - self.sig0) + self.S_tilde * sig_t)
             
     
     def M(self, Q, k, k_t):
@@ -738,7 +738,7 @@ class Worm:
         Internal torque resultant
         '''
         
-        return Q.T * (self.B * (k - self.k_pref) + self.B_tilde * k_t)
+        return Q.T * (self.B * (k - self.k0) + self.B_tilde * k_t)
 
 
 #------------------------------------------------------------------------------ 
@@ -790,7 +790,7 @@ class Worm:
         if 'd3' in self.cache:
             return self.cache['d3']
         
-        self.cache['d3'] = self._Q.T * e2
+        self.cache['d3'] = self._Q.T * e3
         
         return self.cache['d3']
 
@@ -859,7 +859,7 @@ class Worm:
         '''
         L1 norm real minus preferred shear/stretch vector 
         '''
-        sig_err = self._sig - self.sig_pref
+        sig_err = self._sig - self.sig0
         
         return assemble(sqrt(dot(sig_err, sig_err))*dx)        
 
@@ -868,7 +868,7 @@ class Worm:
         '''
         L1 norm real curvature minus preferred curvature norm
         '''        
-        k_err = self._k - self.k_pref
+        k_err = self._k - self.k0
         
         return assemble(sqrt(dot(k_err, k_err))* dx)        
 
@@ -982,7 +982,7 @@ class Worm:
         if 'f_M' in self.cache:
             return self.cache['f_M']
         
-        self.cache['f_M'] = -grad(project(self.S*self.sig_pref, self.V3))
+        self.cache['f_M'] = -grad(project(self.S*self.sig0, self.V3))
         
         return self.cache['f_M']
     
@@ -992,7 +992,7 @@ class Worm:
         if 'l_M' in self.cache:
             return self.cache['l_M']
         
-        self.cache['l_M'] = -grad(project(self.B*self.k_pref, self.V3))
+        self.cache['l_M'] = -grad(project(self.B*self.k0, self.V3))
         
         return self.cache['l_M']
     
