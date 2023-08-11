@@ -131,8 +131,15 @@ class Saver(ABC):
                     h5['FS'][key][i, :] = arr
                                                             
                 if CS_keys is not None:
-                    for key in CS_keys: 
-                        arr = getattr(data['CS'], key)
+                    for key in CS_keys:
+                        
+                        # Make backwards compatible with
+                        # data created before controls 
+                        # where renamed
+                        if not hasattr(data['CS'], key):                        
+                            arr = getattr(data['CS'], key[:-1])
+                        else:
+                            arr = getattr(data['CS'], key)                                                 
                         if data['exit_status'] == 1:                                        
                             arr = Saver._pad_array(n, arr, )                    
                         h5['CS'][key][i, :] = arr
