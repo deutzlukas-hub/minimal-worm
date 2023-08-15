@@ -1231,7 +1231,7 @@ def sweep_mu_c_lam_fang_yen(argv):
                 
     return
 
-def sweep_eta_mu_c_lam_fang_yen(argv):
+def sweep_xi_mu_c_lam_fang_yen(argv):
     '''
     Sweeps over
         - mu: Fluid viscosity
@@ -1243,7 +1243,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
 
-    sweep_parser.add_argument('--eta', 
+    sweep_parser.add_argument('--xi', 
         type=float, nargs=3, default = [-3, -1, 1.0])             
     sweep_parser.add_argument('--mu', 
         type=float, nargs=3, default = [-3, 1, 1.0])        
@@ -1251,8 +1251,6 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
         type=float, nargs=3, default = [0.4, 1.4, 0.2])    
     sweep_parser.add_argument('--lam', 
         type=float, nargs=3, default = [0.5, 2.0, 0.5])    
-    sweep_parser.add_argument('--xi', 
-        type=float, )
                 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
@@ -1281,11 +1279,11 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments
-    eta_min, eta_max = sweep_param.eta[0], sweep_param.eta[1]
-    eta_step = sweep_param.eta[2]
+    xi_min, xi_max = sweep_param.xi[0], sweep_param.xi[1]
+    xi_step = sweep_param.xi[2]
 
-    eta_param = {'v_min': eta_min, 'v_max': eta_max + 0.1*eta_step, 
-        'N': None, 'step': eta_step, 'round': 0, 'log': True, 
+    eta_param = {'v_min': xi_min, 'v_max': xi_max + 0.1*xi_step, 
+        'N': None, 'step': xi_step, 'round': 0, 'log': True, 
         'scale': model_param.E.magnitude, 'quantity': 'pascal*second'}    
     
     mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
@@ -1344,7 +1342,7 @@ def sweep_eta_mu_c_lam_fang_yen(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_fang_yeng_'
-        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'        
+        f'xi_min={xi_min}_xi_max={xi_max}_xi_step={xi_step}_'        
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
@@ -1487,7 +1485,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
                 
     return
 
-def sweep_C_eta_mu_c_lam_fang_yen(argv):
+def sweep_C_xi_mu_c_lam_fang_yen(argv):
     '''
     Sweeps over
         - C: Linear drag coefficient ratio
@@ -1502,7 +1500,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
      
     sweep_parser.add_argument('--C', 
         type=float, nargs=3, default = [2.0, 10.0, 2.0])            
-    sweep_parser.add_argument('--eta', 
+    sweep_parser.add_argument('--xi', 
         type=float, nargs=3, default = [-3, -1, 1.0])        
     
     sweep_parser.add_argument('--mu', 
@@ -1511,8 +1509,6 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
         type=float, nargs=3, default = [0.4, 1.6, 0.1])    
     sweep_parser.add_argument('--lam', 
         type=float, nargs=3, default = [0.4, 2.0, 0.1])    
-    sweep_parser.add_argument('--xi', 
-        type=float, )
                                 
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
@@ -1544,11 +1540,11 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
     C_param = {'v_min': C_min, 'v_max': C_max + 0.1*C_step, 
         'N': None, 'step': C_step, 'round': 1}    
 
-    eta_min, eta_max = sweep_param.eta[0], sweep_param.eta[1]
-    eta_step = sweep_param.eta[2]
+    xi_min, xi_max = sweep_param.xi[0], sweep_param.xi[1]
+    xi_step = sweep_param.xi[2]
 
-    eta_param = {'v_min': eta_min, 'v_max': eta_max + 0.1*eta_step, 
-        'N': None, 'step': eta_step, 'round': 0, 'log': True, 
+    eta_param = {'v_min': xi_min, 'v_max': xi_max + 0.1*xi_step, 
+        'N': None, 'step': xi_step, 'round': 0, 'log': True, 
         'scale': model_param.E.magnitude, 'quantity': 'pascal*second'}    
 
     mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
@@ -1609,7 +1605,7 @@ def sweep_C_eta_mu_c_lam_fang_yen(argv):
         f'raw_data_fang_yeng_'
         f'C_min={C_min}_C_max={C_max}_C_step={C_step}_'                
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
-        f'eta_min={eta_min}_eta_max={eta_max}_eta_step={eta_step}_'                        
+        f'xi_min={xi_min}_xi_max={xi_max}_eta_step={xi_step}_'                        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'T={model_param.T}_'
@@ -1631,9 +1627,9 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
         choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 
-            'eta_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
+            'xi_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
             'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen',
-            'C_eta_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen'], help='Sweep to run')
+            'C_xi_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
