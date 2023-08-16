@@ -35,9 +35,9 @@ class Experiment(ABC):
             help = 'Sigmoid slope at the head')
         parser.add_argument('--Ds_t', type = bool, default = 0.01,
             help = 'Sigmoid slope at the tale')    
-        parser.add_argument('--s0_h', type = bool, default = 3*0.01,
+        parser.add_argument('--s0_h', type = float, default = 3*0.01,
             help = 'Sigmoid midpoint at the head')
-        parser.add_argument('--s0_t', type = bool, default = 1-3*0.01,
+        parser.add_argument('--s0_t', type = float, default = 1-3*0.01,
             help = 'Sigmoid midpoint at the tale')
 
         # Muscle timescale

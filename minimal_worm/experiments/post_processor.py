@@ -57,8 +57,35 @@ class PostProcessor(object):
         V = np.mean(v_com)
                         
         return r_com, v_com_vec, v_com, V, t
+
+    @staticmethod
+    def comp_centreline_curvature(r: np.ndarray):
+        '''
+        Computes centre curvature to compare against generalized
+        curvature vector
+    
+        :param r (n x 3 x N): centreline coordinates
+        '''
+        #
+        ds = 1 / (r.shape[2]-1)
+        # Tangent vector
+        t = np.gradient(r, ds, axis = 2, edge_order = 2)
+        # Curvature vector
+        k = np.gradient(t, ds, axis = 2, 
+            edge_order = 2)
+        
+        t_cross_k = np.cross(t, k, axis = 1)
+        # curvature sign
+        sign = np.sign(t_cross_k[:, 0, :])
+    
+        # Scalar curvature
+        k = sign*np.linalg.norm(k, axis = 1)
+        
+        return k 
         
     @staticmethod
+    
+    
     def com_pca(r_com: np.ndarray):
         '''
         Computes principal directions and components
@@ -267,7 +294,8 @@ class PostProcessor(object):
     
     @staticmethod
     def comp_optimal_c_and_wavelength(U, W, A, c_arr, lam_arr,
-            levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
+            levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            optimize = 'W'):
         '''
         Finds the curvature amplitude wavenumber ratio c and 
         wavelength lambda which minimizes the mechanical muscle work 
@@ -344,7 +372,6 @@ class PostProcessor(object):
                     k = len(lam_on_path_arr)-1
                 else:
                     k = 3
-
                                                                  
                 # Compute B-spline representation of contour path
                 tck, _ = splprep([lam_on_path_arr, c_on_path_arr], s=0, k = k)                
@@ -355,8 +382,7 @@ class PostProcessor(object):
                 
                 lam_min, c_min = splev(result.x, tck)                 
                 W_p_min = W_interp.ev(lam_min, c_min)
-                A_min = A_interp.ev(lam_min, c_min)
-                                
+                
                 # If minimum work on path is smaller than work on any 
                 # other path which belongs to the contour then set 
                 # it contour minimum
@@ -365,7 +391,7 @@ class PostProcessor(object):
                     W_c_min = W_p_min
                     lam_opt = lam_min
                     c_opt = c_min
-                    A_opt = A_min
+                    A_opt = A_interp.ev(lam_min, c_min)
                             
             lam_opt_arr[i] = lam_opt
             c_opt_arr[i] = c_opt
@@ -375,23 +401,28 @@ class PostProcessor(object):
         plt.close()
         
         result = {}
-        result['lam_max'] = lam_max 
-        result['c_max'] = c_max
-        result['A0_max'] = A0_max                
-        result['A_max']= A_max        
-                        
-        result['lam_opt_arr'] = lam_opt_arr 
-        result['c_opt_arr'] = c_opt_arr
-        result['A0_opt_arr'] = 2 * np.pi * c_opt_arr / lam_opt_arr         
-        result['A_opt_arr'] = A_opt_arr
-        result['W_c_min_arr'] = W_c_min_arr
-        result['U_max'] = U_max
+        
+        # refined mesh
         result['c_arr'] = c_arr
         result['lam_arr'] = lam_arr
         result['U'] = U
         result['W'] = W
         result['levels'] = levels
-                                
+        
+        # maximum speed kinematics
+        result['lam_max'] = lam_max 
+        result['c_max'] = c_max
+        result['A0_max'] = A0_max                
+        result['A_max']= A_max        
+        result['U_max'] = U_max        
+        
+        # optimal kinematics on contours
+        result['W_c_min_arr'] = W_c_min_arr
+        result['lam_opt_arr'] = lam_opt_arr 
+        result['c_opt_arr'] = c_opt_arr        
+        result['A0_opt_arr'] = 2 * np.pi * c_opt_arr / lam_opt_arr         
+        result['A_opt_arr'] = A_opt_arr
+                                            
         return result
     
     @staticmethod    

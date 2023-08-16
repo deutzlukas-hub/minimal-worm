@@ -721,6 +721,7 @@ class Worm:
         Fluid drag force line density
         '''                
         e3e3 = outer(e3, e3)
+        
         l_F = -Q.T*self.D*(e3e3 + self.Y * (Identity(3) - e3e3)) * w
         
         return l_F

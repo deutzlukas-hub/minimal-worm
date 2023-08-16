@@ -5,11 +5,16 @@ Created on 14 Jun 2023
 '''
 
 # Built-in
-from fenics import Constant
 from argparse import ArgumentParser, BooleanOptionalAction, Namespace
+from pathlib import Path
+
 # Third-party 
+from fenics import *
 import numpy as np
 import pint
+import cv2
+# Local import 
+from minimal_worm.util import f2n
 
 # Default unit registry
 ureg = pint.UnitRegistry() 
@@ -101,14 +106,179 @@ def parameter_parser():
     param.add_argument('--dt_report', type = lambda v: None if v.lower()=='none' else float(v), 
         default = None, help = 'Save simulation results only every dt_report time step')
 
-
-
     # Solver parameter
     param.add_argument('--fdo', type = int, default = 2, 
         help = 'Order of finite backwards difference')
                 
     return param    
+
+
+def radius_shape_function(
+        plot = False):
+    '''
+    C. elegans have cylindrical body shape that is tapered at the ends.
     
+    Calculated the cross-sectional radius as the function of the body 
+    coordinated from experimental images.         
+    '''    
+    import matplotlib.pyplot as plt
+    from scipy.interpolate import splprep, splev
+    from scipy.spatial.distance import cdist
+    
+            
+    # Load the image
+    image = cv2.imread(str(Path(__file__).parent  
+        / 'c_elegans_body_shape.jpeg'))  # Replace with your image filename
+                        
+    # Convert the image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+    kernel = np.ones((10, 10), np.uint8)    
+    _, thresh = cv2.threshold(gray, 25, 255, cv2.THRESH_BINARY)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    contours, _ = cv2.findContours(opening, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour = contours[1]
+    
+    # Create an empty mask for the centerline
+    centerline_mask = cv2.cvtColor(np.zeros_like(image), cv2.COLOR_BGR2GRAY)
+    # Draw the selected contour on the centerline mask
+    cv2.drawContours(centerline_mask, [contour], -1, 255, thickness=cv2.FILLED)
+    skeleton = cv2.ximgproc.thinning(centerline_mask, thinningType=cv2.ximgproc.THINNING_GUOHALL)
+    
+    r_arr = np.column_stack(np.where(skeleton > 0))
+
+    # Calculate pairwise distances
+    distances = cdist(r_arr, r_arr)
+    
+    # Find the starting point (lowest y-coordinate)
+    start_index = np.argmin(r_arr[:, 0])
+    ordered_indices = [start_index]
+    unprocessed_indices = list(range(len(r_arr)))
+    unprocessed_indices.remove(start_index)
+    
+    # Order the points
+    while unprocessed_indices:
+        current_index = ordered_indices[-1]
+        closest_index = unprocessed_indices[np.argmin(distances[current_index, unprocessed_indices])]
+        ordered_indices.append(closest_index)
+        unprocessed_indices.remove(closest_index)
+    
+    r_arr = r_arr[ordered_indices]
+            
+    x_cont_arr = contour.reshape(-1, 2)
+    
+    # Fit spline to contour
+    tck, _ = splprep([x_cont_arr[:,0], x_cont_arr[:,1]], s=5e3, per=True)
+    # Evaluate the spline on a finer parameterization
+    u_arr = np.linspace(0, 1, num=1000)
+    x_cont_arr = np.array(splev(u_arr, tck)).T
+    
+    # Fit spline to centreline
+    tck, _ = splprep([r_arr[:-250,1], r_arr[:-250,0]], s=1e4, per=False)
+    s_arr = np.linspace(0, 1, num=1000)
+    r_arr = np.array(splev(s_arr, tck)).T
+    
+    # Identify points muscle onset
+    idx1 = np.abs(s_arr - 0.05).argmin()
+    idx2 = np.abs(s_arr - 0.95).argmin()
+    
+    R_arr = cdist(r_arr, x_cont_arr).min(axis = 1)
+    phi_arr = R_arr / R_arr.max()
+
+    # Define the degree of the polynomial
+    degree = 8
+    # Fit a polynomial of the specified degree
+    coeff = np.polyfit(s_arr, phi_arr, degree)    
+    # Generate the polynomial function using the fitted coefficient
+    phi_fit = np.poly1d(coeff)
+        
+    # Convert polynomial to fenics Expressions         
+    expr_str = "c0 * pow(x[0], 8) + c1 * pow(x[0], 7) + c2 * pow(x[0], 6) + c3 * pow(x[0], 5) + c4 * pow(x[0], 4) + c5 * pow(x[0], 3) + c6 * pow(x[0], 2) + c7 * x[0] + c8"
+    phi_expr = Expression(expr_str, degree=8, 
+        c0=coeff[0], c1=coeff[1], c2=coeff[2], c3=coeff[3], c4=coeff[4], 
+        c5=coeff[5], c6=coeff[6], c7=coeff[7], c8=coeff[8])
+    
+    # Sainity check
+    N = 100
+    mesh = UnitIntervalMesh(N-1)
+    V = FunctionSpace(mesh, 'Lagrange', 1)
+    phi_func = Function(V)
+    phi_func.assign(phi_expr)
+    phi_fit_arr = phi_func.compute_vertex_values(mesh)    
+    s_fit_arr = np.linspace(0, 1, N)
+    assert np.allclose(phi_fit_arr, phi_fit(s_fit_arr))
+
+    if plot:
+        # Plot the contour using Matplotlib
+        gs = plt.GridSpec(2, 1)
+        ax0 = plt.subplot(gs[0])
+        ax1 = plt.subplot(gs[1])
+    
+        ax0.imshow(image)
+        ax0.plot(x_cont_arr[:, 0], x_cont_arr[:, 1], c='g')
+        ax0.plot(r_arr[:, 0], r_arr[:, 1], c='r')
+        ax0.plot(r_arr[idx1, 0], r_arr[idx1, 1], 'o', 'b')
+        ax0.plot(r_arr[idx2, 0], r_arr[idx2, 1], 'o', 'b')
+        ax1.plot(s_arr, phi_arr)    
+        ax1.plot(s_fit_arr, phi_fit_arr)            
+        plt.show()
+    
+    return phi_expr
+
+    
+def RFT_spatial(param):
+    '''
+    For a non-elliptic shape functions, sbt predicts that the linear drag 
+    coefficients depend on the body position s. 
+    
+    For C. elegans, the shape functions can be determined from microscope 
+    images. Here, we show that the drag coefficient ratio remains approximately
+    constant along the body. 
+    
+    The change in the tangential drag coefficient is small <= 10%, i.e. we approximate 
+    it as constant. 
+    '''
+    
+    import matplotlib.pyplot as plt
+
+    
+    eps = 2*param.R/param.L0 # slenderness parameter        
+    assert eps.dimensionality == ureg.dimensionless.dimensionality
+    
+    phi_fit, _ = radius_shape_function()
+
+    s_arr = np.linspace(0, 1, int(1e3), endpoint=True)
+    
+    sH = 0.1
+    sT = 0.9
+    
+    sC_arr = s_arr[np.logical_and(sH < s_arr, s_arr < sT)]
+    sH_arr = s_arr[s_arr <= sH]
+    sT_arr = s_arr[s_arr >= sT]
+            
+    c_t_H_arr = np.ones_like(sH_arr)*2*np.pi / ( np.log( 4 / (phi_fit(sH) *eps) ) - 0.5)
+    c_t_T_arr = np.ones_like(sT_arr)*2*np.pi / ( np.log( 4 / (phi_fit(sT) *eps) ) - 0.5)
+    c_t_C_arr = 2*np.pi / ( np.log( 4*np.sqrt(sC_arr - sC_arr**2) / (phi_fit(sC_arr) *eps) ) - 0.5)
+
+    plt.plot(sC_arr, np.log( 4*np.sqrt(sC_arr - sC_arr**2) / (phi_fit(sC_arr) *eps) ))
+    plt.show()
+
+    c_n_C_arr = 4*np.pi / ( np.log( 4*np.sqrt(sC_arr - sC_arr**2) / (phi_fit(sC_arr) *eps) ) + 0.5)
+
+    c_t_arr = np.concatenate((c_t_H_arr, c_t_C_arr, c_t_T_arr))
+    
+    gs = plt.GridSpec(2, 1)
+    ax0 = plt.subplot(gs[0])
+    ax1 = plt.subplot(gs[1])
+    
+    ax0.plot(s_arr, c_t_arr)    
+    ax1.plot(sC_arr, c_n_C_arr/c_t_C_arr)
+    
+    plt.show()
+    
+    return
+
+        
 def RFT(param: Namespace):
     '''
     Calculates dimensionless drag coefficients as predicted by 
@@ -397,11 +567,24 @@ class ModelParameter():
         S_tilde = Constant(self.S_tilde)
         B = Constant(self.B)
         B_tilde = Constant(self.B_tilde)
-        
-        if self.phi is not None:
-            S, S_tilde = self.phi**2 * S, self.phi**2 * S_tilde
-            B, B_tilde  = self.phi**4 * B, self.phi**4 * B_tilde 
-                    
-        return C, D, Y, S, S_tilde, B, B_tilde       
-    
                 
+        if self.phi is not None:
+            if self.phi == 'c_elegans':            
+                phi = radius_shape_function()            
+                D = phi**2 * D             
+                S = phi**2 * S 
+                S_tilde = phi**2 * S_tilde
+                B = phi**4 * B 
+                B_tilde = phi**4 * B_tilde
+            else:
+                assert False
+                           
+        return C, D, Y, S, S_tilde, B, B_tilde,        
+    
+if __name__ == '__main__':
+    
+    radius_shape_function(plot=True)    
+    # param = parameter_parser()
+    # default_param = param.parse_args([])
+    # RFT_spatial(default_param)
+    
