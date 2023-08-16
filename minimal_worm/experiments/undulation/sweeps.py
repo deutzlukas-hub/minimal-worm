@@ -1608,7 +1608,7 @@ def sweep_C_xi_mu_c_lam_fang_yen(argv):
         f'xi_min={xi_min}_xi_max={xi_max}_eta_step={xi_step}_'                        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
-        f'T={model_param.T}_'
+        f'phi={model_param.phi}_T={model_param.T}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
