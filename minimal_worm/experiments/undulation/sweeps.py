@@ -1718,7 +1718,7 @@ def sweep_f_rikmenspoel(argv):
 
     data = rikmenspoel_1978()        
     # Set curvature amplitude    
-    model_param.A = data['A_avg']
+    model_param.A = data['A_avg'].magnitude
 
     # Set material parameters to the experimental sperm data
     L0 = sperm_param_dict['L0']
@@ -1730,16 +1730,13 @@ def sweep_f_rikmenspoel(argv):
     xi = 1e-3 * ureg.second
     eta = E * xi  
     
-    
     model_param.L0 = L0.to_base_units()
     model_param.R = R.to_base_units()
     model_param.E = E.to_base_units()    
     model_param.eta = eta.to_base_units()    
     
-
     # Specify all dimensionless parameters which 
     # should be calculated from phyisical parameters                
-    model_param.c_t_from_physical = True
     model_param.C_from_physical = True
     model_param.D_from_physical = True
     model_param.Y_from_physical = True        
