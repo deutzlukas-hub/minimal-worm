@@ -127,6 +127,68 @@ def fit_gagnon_sznitman():
     
     return U_sig_fit
 
+def rikmenspoel_1978():
+
+
+
+    f = np.array([8.26, 10.08, 26.13, 31.82, 36.23, 42.79, 45.69, 51.91]) * ureg.hertz
+    lam = np.array([49.11, 46.11, 34.15, 32.75, 32.28, 30.51, 30.81, 27.93]) * ureg.micrometer
+    A_real = np.array([9.12, 8.86, 5.23, 4.61, 4.51, 4.65, 4.77, 3.81]) * ureg.micrometer
+    
+    s = np.array([ 1., 1.,   1.2,  1.3,  1.2,  5.5,  5.6,  4.6,  5.7,  8.7,  
+        9.9, 11.2, 10.4, 12.4, 19.7, 20.,  21.4, 22., 20.7, 29.9, 29.3, 
+        30.5, 31.5, 30.3, 39.2, 40.7, 40.9]) * ureg.micrometer
+    
+    A = np.array([5239, 4039, 3821, 3445, 3141, 2517, 2336, 2083, 1633, 1632, 
+        1697, 1885, 1725, 1627, 1410, 1532, 1699, 1656, 1239, 1492, 1571, 1441, 
+        1926, 1372, 1444, 1226, 2372]) / ureg.centimeter
+
+    # Here, we model only distal region of the flagellum
+    # which has a constant curvature amplitude and length
+    L0 = 33*ureg.micrometer
+    
+    # Convert to dimensionless units
+    A = A*L0
+    A.ito_base_units()
+    lam = lam / L0
+    lam.ito_base_units()
+    A_real = A_real*L0
+    A_real.ito_base_units()
+
+    f_avg = 35
+
+    # # Fit the polynomial
+    c = np.polyfit(f.magnitude, lam.magnitude, 2)    
+    # Create a polynomial function using the c
+    lam_fit = np.poly1d(c)
+    lam_avg = lam_fit(f_avg) * ureg.micrometer
+
+    #Fit the polynomial
+    c = np.polyfit(f.magnitude, A_real.magnitude, 3)    
+    # Create a polynomial function using the c    
+    A_real_fit = np.poly1d(c)
+    A_real_avg = A_real_fit(f_avg) * ureg.micrometer
+
+    # Fit curvature amplitude    
+    A_avg = A[s.magnitude >= 7].mean()
+
+    data = {                
+        'f': f,
+        'lam': lam,
+        'A_real': A_real,
+        's': s,
+        'A': A,                
+        'lam_fit': lam_fit,
+        'A_real_fit': A_real_fit,
+        'f_avg': f_avg,
+        'lam_avg': lam_avg,
+        'A_real_avg': A_real_avg,
+        'A_avg': A_avg
+    }
+    
+    return data
+
+
 def default_sweep_parameter():
     '''
     Default sweep hyper parameter
@@ -1622,6 +1684,124 @@ def sweep_C_xi_mu_c_lam_fang_yen(argv):
                 
     return
 
+# Sea urchin sperm        
+sperm_param_dict = {            
+    
+    'L0': 33*ureg.micrometer,
+    'B_max': 15e-22*ureg.newton*ureg.meter**2,
+    'B_min': 3e-22*ureg.newton*ureg.meter**2,        
+    'B': 10e-22*ureg.newton*ureg.meter**2,    
+    'mu': 1*ureg.millipascal*ureg.second,
+    'f_avg': 35*ureg.hertz,
+    'R': 0.1*ureg.micrometer
+}        
+    
+def sweep_f_rikmenspoel(argv):
+    
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+            
+    sweep_parser.add_argument('--f', 
+        type=float, nargs=3, default = [10, 50, 1.0])    
+
+    # The argumentparser for the sweep parameter has a boolean argument 
+    # for ever frame key and control key which can be set to true
+    # if it should be saved 
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    # Parse model parameter
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+
+    data = rikmenspoel_1978()        
+    # Set curvature amplitude    
+    model_param.A = data['A_avg']
+
+    # Set material parameters to the experimental sperm data
+    L0 = sperm_param_dict['L0']
+    R = sperm_param_dict['R']
+    B = sperm_param_dict['B']
+
+    I = 0.25*np.pi*R**4
+    E = B/I
+    xi = 1e-3 * ureg.second
+    eta = E * xi  
+    
+    
+    model_param.L0 = L0.to_base_units()
+    model_param.R = R.to_base_units()
+    model_param.E = E.to_base_units()    
+    model_param.eta = eta.to_base_units()    
+    
+
+    # Specify all dimensionless parameters which 
+    # should be calculated from phyisical parameters                
+    model_param.c_t_from_physical = True
+    model_param.C_from_physical = True
+    model_param.D_from_physical = True
+    model_param.Y_from_physical = True        
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True
+
+    # Create the ParameterGrid over which we want to run
+    # the undulation experiments    
+    f_min, f_max, f_step = sweep_param.f[0], sweep_param.f[1], sweep_param.f[2] 
+    f_arr = np.arange(f_min, f_max + 0.1*f_step, f_step)
+    T_c_arr = 1.0 / f_arr
+
+    lam_fit = data['lam_fit']
+    lam_arr = lam_fit(f_arr) 
+            
+    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    lam_param = {'v_arr': lam_arr.tolist(), 'round': 2}
+    
+    grid_param = {('T_c', 'lam'): (T_c_param, lam_param)} 
+
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+    # Experiments are run using the Sweeper class for parallelization            
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5            
+    filename = Path(
+        f'raw_data_rikmenspoel'
+        f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
+        f'phi={model_param.phi}_T={model_param.T}_'
+        f'N={model_param.N}_dt={model_param.dt}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+        
+    # Analyse simulation results
+    if sweep_param.analyse:
+        analyse(h5_filepath, what_to_calculate=sweep_param)
+
+
+
+
 if __name__ == '__main__':
         
     parser = ArgumentParser()
@@ -1629,7 +1809,7 @@ if __name__ == '__main__':
         choices = ['a_b', 'A_lam_a_b', 'c_lam_a_b', 'mu_c_lam_fang_yen', 
             'xi_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
             'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen',
-            'C_xi_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen'], help='Sweep to run')
+            'C_xi_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen', 'f_rikmenspoel'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
