@@ -1828,10 +1828,7 @@ def sweep_f_c_lam_rikmenspoel(argv):
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
-
-    data = rikmenspoel_1978()        
-    # Set curvature amplitude    
-    model_param.A = data['A_avg'].magnitude
+    model_param.use_c = True
 
     # Set material parameters to the experimental sperm data
     L0 = sperm_param_dict['L0']
@@ -1915,10 +1912,6 @@ def sweep_f_c_lam_rikmenspoel(argv):
     # Analyse simulation results
     if sweep_param.analyse:
         analyse(h5_filepath, what_to_calculate=sweep_param)
-
-
-
-
 
 if __name__ == '__main__':
         
