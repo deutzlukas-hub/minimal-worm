@@ -1803,6 +1803,8 @@ def sweep_f_c_lam_rikmenspoel(argv):
         - c: shape factor
         - lam: wavelength
     
+    Frequency range is adjusted to experimental data.
+    
     Do sperm with optimal wavelength?
     '''
     
@@ -1898,7 +1900,7 @@ def sweep_f_c_lam_rikmenspoel(argv):
 
     # Pool and save simulation results to hdf5            
     filename = Path(
-        f'raw_data_rikmenspoel'
+        f'raw_data_rikmenspoel_'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'                
         f'lam_min={lam_min}_lam_max={lam_max}_f_step={lam_step}_'                        
