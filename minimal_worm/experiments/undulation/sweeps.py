@@ -2023,6 +2023,8 @@ def sweep_f_c_lam_rikmenspoel(argv):
     if sweep_param.analyse:
         analyse(h5_filepath, what_to_calculate=sweep_param)
 
+    return
+
 if __name__ == '__main__':
         
     parser = ArgumentParser()
