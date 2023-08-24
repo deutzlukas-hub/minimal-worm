@@ -129,8 +129,6 @@ def fit_gagnon_sznitman():
 
 def rikmenspoel_1978():
 
-
-
     f = np.array([8.26, 10.08, 26.13, 31.82, 36.23, 42.79, 45.69, 51.91]) * ureg.hertz
     lam = np.array([49.11, 46.11, 34.15, 32.75, 32.28, 30.51, 30.81, 27.93]) * ureg.micrometer
     A_real = np.array([9.12, 8.86, 5.23, 4.61, 4.51, 4.65, 4.77, 3.81]) * ureg.micrometer
@@ -161,7 +159,7 @@ def rikmenspoel_1978():
     c = np.polyfit(f.magnitude, lam.magnitude, 2)    
     # Create a polynomial function using the c
     lam_fit = np.poly1d(c)
-    lam_avg = lam_fit(f_avg) * ureg.micrometer
+    lam_avg = lam_fit(f_avg) 
 
     #Fit the polynomial
     c = np.polyfit(f.magnitude, A_real.magnitude, 3)    
@@ -1796,6 +1794,118 @@ def sweep_f_rikmenspoel(argv):
     if sweep_param.analyse:
         analyse(h5_filepath, what_to_calculate=sweep_param)
 
+def sweep_f_lam_rikmenspoel(argv):
+    '''
+    Sweeps over
+        - f: frequency
+        - c: shape factor
+        - lam: wavelength
+    
+    Frequency range is adjusted to experimental data.
+    
+    Do sperm with optimal wavelength?
+    '''
+    
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+            
+    sweep_parser.add_argument('--f', 
+        type=float, nargs=3, default = [10, 50, 5.0])    
+    sweep_parser.add_argument('--lam', 
+        type=float, nargs=3, default = [0.4, 2.0, 0.1])
+    
+    # The argumentparser for the sweep parameter has a boolean argument 
+    # for ever frame key and control key which can be set to true
+    # if it should be saved 
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    data = rikmenspoel_1978()
+
+    # Parse model parameter
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+    model_param.A = data['A_avg'] 
+
+    # Set material parameters to the experimental sperm data
+    L0 = sperm_param_dict['L0']
+    R = sperm_param_dict['R']
+    B = sperm_param_dict['B']
+
+    I = 0.25*np.pi*R**4
+    E = B/I
+    xi = 1e-3 * ureg.second
+    eta = E * xi  
+    
+    model_param.L0 = L0.to_base_units()
+    model_param.R = R.to_base_units()
+    model_param.E = E.to_base_units()    
+    model_param.eta = eta.to_base_units()    
+    
+    # Specify all dimensionless parameters which 
+    # should be calculated from phyisical parameters                
+    model_param.C_from_physical = True
+    model_param.D_from_physical = True
+    model_param.Y_from_physical = True        
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True
+
+    # Create the ParameterGrid over which we want to run
+    # the undulation experiments    
+    f_min, f_max, f_step = sweep_param.f[0], sweep_param.f[1], sweep_param.f[2] 
+
+    T_c_param = {'v_min': f_min, 'v_max': f_max + 0.1*f_step, 
+        'N': None, 'step': f_step, 'round': 3, 'inverse': True, 'quantity': 'second'}    
+                
+    lam_min, lam_max, lam_step = sweep_param.lam[0], sweep_param.lam[1], sweep_param.lam[2]
+
+    lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1*lam_step, 
+        'N': None, 'step': lam_step, 'round': 2}
+    
+    grid_param = {'T_c': T_c_param, 'lam': lam_param} 
+
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+    # Experiments are run using the Sweeper class for parallelization            
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5            
+    filename = Path(
+        f'raw_data_rikmenspoel_'
+        f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
+        f'lam_min={lam_min}_lam_max={lam_max}_f_step={lam_step}_'                        
+        f'phi={model_param.phi}_T={model_param.T}_'
+        f'N={model_param.N}_dt={model_param.dt}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+        
+    # Analyse simulation results
+    if sweep_param.analyse:
+        analyse(h5_filepath, what_to_calculate=sweep_param)
+
+
 def sweep_f_c_lam_rikmenspoel(argv):
     '''
     Sweeps over
@@ -1921,7 +2031,7 @@ if __name__ == '__main__':
             'xi_mu_c_lam_fang_yen', 'C_c_lam', 'c_lam_a_b', 'C_a_b', 
             'c_lam', 'lam_a_b', 'c_a_b', 'C_mu_c_lam_fang_yen',
             'C_xi_mu_c_lam_fang_yen', 'C_xi_mu_fang_yen', 
-            'f_rikmenspoel', 'f_c_lam_rikmenspoel'], help='Sweep to run')
+            'f_rikmenspoel', 'f_lam_rikmenspoel', 'f_c_lam_rikmenspoel'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
