@@ -1831,7 +1831,7 @@ def sweep_f_rikmenspoel(argv):
     filename = Path(
         f'raw_data_rikmenspoel'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
-        f'const_A={sweep_parser.const_A}'
+        f'const_A={sweep_param.const_A}'
         f'phi={model_param.phi}_T={model_param.T}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
