@@ -1719,7 +1719,7 @@ def sweep_C_xi_mu_c_lam_fang_yen(argv):
 # Sea urchin sperm        
 sperm_param_dict = {            
     
-    'L0': 33*ureg.micrometer,
+    'L0': 43*ureg.micrometer,
     'B_max': 15e-22*ureg.newton*ureg.meter**2,
     'B_min': 3e-22*ureg.newton*ureg.meter**2,        
     'B': 10e-22*ureg.newton*ureg.meter**2,    
