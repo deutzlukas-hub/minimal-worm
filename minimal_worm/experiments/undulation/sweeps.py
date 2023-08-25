@@ -1729,12 +1729,19 @@ sperm_param_dict = {
 }        
     
 def sweep_f_rikmenspoel(argv):
+    '''
+    Sweep over undulation frequency.
+    
+    Use the wavelength and curvature amplitude from paper        
+    '''
     
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
             
     sweep_parser.add_argument('--f', 
         type=float, nargs=3, default = [10, 50, 1.0])    
+    sweep_parser.add_argument('--const_A', action = BooleanOptionalAction, default = False, 
+        help = 'If true, curvature amplitude is assumed to be constant')
 
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
@@ -1747,11 +1754,17 @@ def sweep_f_rikmenspoel(argv):
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
 
-
-    data = rikmenspoel_1978()        
     # Set curvature amplitude    
-    model_param.A = data['A_avg'].magnitude
-
+    if sweep_param.const_A:    
+        data = rikmenspoel_1978()
+        model_param.A = data['A_star'].magnitude.mean()            
+        CS = UndulationExperiment.stw_control_sequence
+    
+    else:
+        A_fit = fit_rikmenspoel_1978()[2]
+        model_param.A = A_fit.coef.tolist()
+        CS = UndulationExperiment.stw_va_control_sequence
+            
     # Set material parameters to the experimental sperm data
     L0 = sperm_param_dict['L0']
     R = sperm_param_dict['R']
@@ -1766,7 +1779,7 @@ def sweep_f_rikmenspoel(argv):
     model_param.R = R.to_base_units()
     model_param.E = E.to_base_units()    
     model_param.eta = eta.to_base_units()    
-    
+
     # Specify all dimensionless parameters which 
     # should be calculated from phyisical parameters                
     model_param.C_from_physical = True
@@ -1781,7 +1794,7 @@ def sweep_f_rikmenspoel(argv):
     f_arr = np.arange(f_min, f_max + 0.1*f_step, f_step)
     T_c_arr = 1.0 / f_arr
 
-    lam_fit = data['lam_fit']
+    lam_fit = fit_rikmenspoel_1978()[0]
     lam_arr = lam_fit(f_arr) 
             
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
@@ -1796,12 +1809,14 @@ def sweep_f_rikmenspoel(argv):
     else:
         from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
 
+
+
     # Experiments are run using the Sweeper class for parallelization            
     if sweep_param.run:
         Sweeper.run_sweep(
             sweep_param.worker, 
             PG, 
-            UndulationExperiment.stw_control_sequence, 
+            CS, 
             FK,
             log_dir, 
             sim_dir, 
@@ -1816,6 +1831,7 @@ def sweep_f_rikmenspoel(argv):
     filename = Path(
         f'raw_data_rikmenspoel'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
+        f'const_A={sweep_parser.const_A}'
         f'phi={model_param.phi}_T={model_param.T}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
@@ -1827,6 +1843,8 @@ def sweep_f_rikmenspoel(argv):
     # Analyse simulation results
     if sweep_param.analyse:
         analyse(h5_filepath, what_to_calculate=sweep_param)
+
+    return
 
 def sweep_f_lam_rikmenspoel(argv):
     '''
