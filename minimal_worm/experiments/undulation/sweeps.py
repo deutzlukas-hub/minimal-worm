@@ -1738,7 +1738,7 @@ def sweep_f_rikmenspoel(argv):
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
             
-    sweep_parser.add_argument('--f', 
+    sweep_parser.add_argument('--freq', 
         type=float, nargs=3, default = [10, 50, 1.0])    
     sweep_parser.add_argument('--const_A', action = BooleanOptionalAction, default = False, 
         help = 'If true, curvature amplitude is assumed to be constant')
@@ -1790,7 +1790,7 @@ def sweep_f_rikmenspoel(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments    
-    f_min, f_max, f_step = sweep_param.f[0], sweep_param.f[1], sweep_param.f[2] 
+    f_min, f_max, f_step = sweep_param.freq[0], sweep_param.freq[1], sweep_param.freq[2] 
     f_arr = np.arange(f_min, f_max + 0.1*f_step, f_step)
     T_c_arr = 1.0 / f_arr
 
