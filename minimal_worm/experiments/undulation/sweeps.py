@@ -1797,7 +1797,7 @@ def sweep_f_rikmenspoel(argv):
     lam_fit = fit_rikmenspoel_1978()[0]
     lam_arr = lam_fit(f_arr) 
             
-    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 5, 'quantity': 'second'}    
     lam_param = {'v_arr': lam_arr.tolist(), 'round': 2}
     
     grid_param = {('T_c', 'lam'): (T_c_param, lam_param)} 
@@ -1808,8 +1808,6 @@ def sweep_f_rikmenspoel(argv):
         log_dir, sim_dir, sweep_dir = create_storage_dir()     
     else:
         from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
-
-
 
     # Experiments are run using the Sweeper class for parallelization            
     if sweep_param.run:
@@ -1829,9 +1827,9 @@ def sweep_f_rikmenspoel(argv):
 
     # Pool and save simulation results to hdf5            
     filename = Path(
-        f'raw_data_rikmenspoel'
+        f'raw_data_rikmenspoel_'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
-        f'const_A={sweep_param.const_A}'
+        f'const_A={sweep_param.const_A}_'
         f'phi={model_param.phi}_T={model_param.T}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
