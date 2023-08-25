@@ -128,63 +128,97 @@ def fit_gagnon_sznitman():
     return U_sig_fit
 
 def rikmenspoel_1978():
+    '''
+    
+    '''
 
     f = np.array([8.26, 10.08, 26.13, 31.82, 36.23, 42.79, 45.69, 51.91]) * ureg.hertz
     lam = np.array([49.11, 46.11, 34.15, 32.75, 32.28, 30.51, 30.81, 27.93]) * ureg.micrometer
     A_real = np.array([9.12, 8.86, 5.23, 4.61, 4.51, 4.65, 4.77, 3.81]) * ureg.micrometer
     
-    s = np.array([ 1., 1.,   1.2,  1.3,  1.2,  5.5,  5.6,  4.6,  5.7,  8.7,  
-        9.9, 11.2, 10.4, 12.4, 19.7, 20.,  21.4, 22., 20.7, 29.9, 29.3, 
-        30.5, 31.5, 30.3, 39.2, 40.7, 40.9]) * ureg.micrometer
+    s = np.array([1.0, 0.9, 1.1, 1.2, 1.2, 5.4, 5.5, 4.5, 5.6, 8.6, 
+        10.0, 10.4, 11.1, 12.4, 19.7, 20.0, 20.7, 21.4, 22.0, 29.4, 
+        30.3, 30.6, 31.5, 30.0, 39.2, 40.7, 41.0]) * ureg.micrometer    
     
-    A = np.array([5239, 4039, 3821, 3445, 3141, 2517, 2336, 2083, 1633, 1632, 
-        1697, 1885, 1725, 1627, 1410, 1532, 1699, 1656, 1239, 1492, 1571, 1441, 
-        1926, 1372, 1444, 1226, 2372]) / ureg.centimeter
+    A = np.array([5244.0, 4052.0, 3826.0, 3456.0, 3158.0, 2705.0, 2523.0, 
+        2350.0, 2095.0, 1635.0, 1635.0, 1889.0, 1707.0, 1721.0, 1630.0,
+        1405.0, 1659.0, 1549.0, 1709.0, 1494.0, 1930.0, 1581.0, 1450.0, 
+        1240.0, 1381.0, 1445.0, 1227.0]) / ureg.centimeter
 
-    # Here, we model only distal region of the flagellum
-    # which has a constant curvature amplitude and length
-    L0 = 33*ureg.micrometer
+    L0 = sperm_param_dict['L0']    
+
+    A_real_star = A_real / L0
+    A_real_star.ito_base_units()
+    A_star = A * L0
+    A_star.ito_base_units()
+    s_star = s / L0
+    s_star.ito_base_units()
     
-    # Convert to dimensionless units
-    A = A*L0
-    A.ito_base_units()
-    lam = lam / L0
-    lam.ito_base_units()
-    A_real = A_real*L0
-    A_real.ito_base_units()
-
+    lam_star = lam / L0    
+    lam_star.ito_base_units()
+        
     f_avg = 35
-
-    # # Fit the polynomial
-    c = np.polyfit(f.magnitude, lam.magnitude, 2)    
-    # Create a polynomial function using the c
-    lam_fit = np.poly1d(c)
-    lam_avg = lam_fit(f_avg) 
-
-    #Fit the polynomial
-    c = np.polyfit(f.magnitude, A_real.magnitude, 3)    
-    # Create a polynomial function using the c    
-    A_real_fit = np.poly1d(c)
-    A_real_avg = A_real_fit(f_avg) * ureg.micrometer
-
-    # Fit curvature amplitude    
-    A_avg = A[s.magnitude >= 7].mean()
-
+      
     data = {                
+        'L0': 43*ureg.micrometer,
         'f': f,
         'lam': lam,
         'A_real': A_real,
         's': s,
         'A': A,                
-        'lam_fit': lam_fit,
-        'A_real_fit': A_real_fit,
         'f_avg': f_avg,
-        'lam_avg': lam_avg,
-        'A_real_avg': A_real_avg,
-        'A_avg': A_avg
+        'lam_star': lam_star,
+        'A_real_star': A_real_star,
+        'A_star': A_star,
+        's_star': s_star
     }
     
     return data
+    
+def fit_rikmenspoel_1978():
+    '''
+    Fit rikmenspoel data
+    '''
+    
+    data = rikmenspoel_1978()
+    
+    f, s = data['f'], data['s_star'] 
+    lam, A_real, A = data['lam_star'], data['A_real_star'], data['A_star']
+    
+    # # Fit the polynomial
+    c = np.polyfit(f.magnitude, lam.magnitude, 2)    
+    # Create a polynomial function using the c
+    lam_fit = np.poly1d(c)
+
+    #Fit the polynomial
+    c = np.polyfit(f.magnitude, A_real.magnitude, 2)    
+    # Create a polynomial function using the c    
+    A_real_fit = np.poly1d(c)
+    
+    # def sigmoid(s, a, b, c, d):
+    #     y = a / (1 + np.exp(-c*(s-b))) + d
+    #     return y
+    #
+    # A_avg = A[s > 0.25].mean()
+    #
+    # # Fit the sigmoid to wavelength
+    # popt_lam, _ = curve_fit(sigmoid, 
+    #     s.magnitude, A.magnitude, p0=[10, 5, -10, A_avg])
+    # A_fit = lambda s: sigmoid(s, *popt_lam)
+
+    #Fit the polynomial
+    
+    #assign higher weight to maximum value
+    w = np.ones(len(A.magnitude))
+    w[A.magnitude.argmax()] = 2
+       
+    c = np.polyfit(s.magnitude, A.magnitude, 6, w = w)    
+    # Create a polynomial function using the c    
+    A_fit = np.poly1d(c)
+        
+    return lam_fit, A_real_fit, A_fit
+
+
 
 
 def default_sweep_parameter():
@@ -1821,12 +1855,12 @@ def sweep_f_lam_rikmenspoel(argv):
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
     CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
-    data = rikmenspoel_1978()
+    A_fit = fit_rikmenspoel_1978()[2]
 
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
-    model_param.A = data['A_avg'] 
+    model_param.A = A_fit.coef.tolist()
 
     # Set material parameters to the experimental sperm data
     L0 = sperm_param_dict['L0']
@@ -1877,7 +1911,7 @@ def sweep_f_lam_rikmenspoel(argv):
         Sweeper.run_sweep(
             sweep_param.worker, 
             PG, 
-            UndulationExperiment.stw_control_sequence, 
+            UndulationExperiment.stw_va_control_sequence, 
             FK,
             log_dir, 
             sim_dir, 

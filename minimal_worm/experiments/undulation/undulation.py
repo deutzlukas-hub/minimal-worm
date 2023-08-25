@@ -39,6 +39,7 @@ class UndulationExperiment(Experiment):
     def stw_control_sequence(param):
         '''
         Sinusoidal travelling wave control sequence
+        with fixed amplitude
 
         :param worm (CosseratRod): worm object
         :param param (dict): param dictionary
@@ -72,3 +73,48 @@ class UndulationExperiment(Experiment):
         sig = Constant((0, 0, 0))    
     
         return {'k0': k, 'sig0': sig, 't': t}
+
+    @staticmethod                                                
+    def stw_va_control_sequence(param):
+        '''
+        Sinusoidal travelling wave control sequence
+        with varying curvature amplitude.
+        
+        Flagellum of sperm have creasing amplitude
+
+        :param worm (CosseratRod): worm object
+        :param param (dict): param dictionary
+        '''
+        if isinstance(param, dict):
+            param_dict = param
+            param = Namespace()
+            param.__dict__.update(param_dict)
+           
+        # Kinematic param
+        lam = param.lam
+        q = 2*np.pi / lam
+                
+        coeff= param.A
+        
+        signs = ['+' if c>0 else '-' for c in coeff]
+        signs[0] = ''
+        
+        deg = len(coeff)-1                 
+        # Convert polynomial to fenics Expressions         
+        expr_str = ''.join([f"{signs[i]}{np.abs(c)}*pow(x[0], {deg-i})" for i, c in enumerate(coeff)]) 
+        
+        # Create a FEniCS Expression using the string
+        A_expr = Expression(expr_str, degree=1)
+        
+        t = Constant(0.0)
+                                                                                                            
+        k0 = Expression(("A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
+            degree=1, t = t, A = A_expr, q = q)   
+                  
+        sig0 = Constant((0, 0, 0))    
+    
+        return {'k0': k0, 'sig0': sig0, 't': t}
+
+
+    
+    
