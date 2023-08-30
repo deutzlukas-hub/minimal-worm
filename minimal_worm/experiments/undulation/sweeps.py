@@ -1903,7 +1903,7 @@ def sweep_f_lam_rikmenspoel(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments    
-    f_min, f_max, f_step = sweep_param.f[0], sweep_param.f[1], sweep_param.f[2] 
+    f_min, f_max, f_step = sweep_param.freq[0], sweep_param.freq[1], sweep_param.freq[2] 
 
     T_c_param = {'v_min': f_min, 'v_max': f_max + 0.1*f_step, 
         'N': None, 'step': f_step, 'round': 3, 'inverse': True, 'quantity': 'second'}    
@@ -1942,7 +1942,7 @@ def sweep_f_lam_rikmenspoel(argv):
     filename = Path(
         f'raw_data_rikmenspoel_'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
-        f'lam_min={lam_min}_lam_max={lam_max}_f_step={lam_step}_'                        
+        f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'                        
         f'phi={model_param.phi}_T={model_param.T}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
@@ -2015,7 +2015,7 @@ def sweep_f_c_lam_rikmenspoel(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments    
-    f_min, f_max, f_step = sweep_param.f[0], sweep_param.f[1], sweep_param.f[2] 
+    f_min, f_max, f_step = sweep_param.freq[0], sweep_param.freq[1], sweep_param.freq[2] 
 
     T_c_param = {'v_min': f_min, 'v_max': f_max + 0.1*f_step, 
         'N': None, 'step': f_step, 'round': 3, 'inverse': True, 'quantity': 'second'}    
