@@ -62,8 +62,8 @@ class FrameSequence():
       
     def __len__(self):
         return self.r.shape[0]
-        
-                
-
+    
+    
+                   
                    
                 

@@ -294,8 +294,7 @@ class PostProcessor(object):
     
     @staticmethod
     def comp_optimal_c_and_wavelength(U, W, A, c_arr, lam_arr,
-            levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-            optimize = 'W'):
+            levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
         '''
         Finds the curvature amplitude wavenumber ratio c and 
         wavelength lambda which minimizes the mechanical muscle work 

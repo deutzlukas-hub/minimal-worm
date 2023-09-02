@@ -79,8 +79,6 @@ def parameter_parser():
         help = 'Cross-sectional radius shape function')
     param.add_argument('--g_from_physical', action = BooleanOptionalAction, default = False, 
         help = 'If true, g is calculated from given physical parameters')
-    param.add_argument('--c_t_from_physical', action = BooleanOptionalAction, default = False, 
-        help = 'If true, c_t is calculated from physical parameters')
     param.add_argument('--C_from_physical', action = BooleanOptionalAction, default = False, 
         help = 'If true, C is calculated from physical parameters')
     param.add_argument('--Y_from_physical', action = BooleanOptionalAction, default = False, 

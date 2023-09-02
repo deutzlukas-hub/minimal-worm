@@ -90,7 +90,7 @@ class Worm:
 
         # Finite elements for 1 dimensional spatial coordinate s        
         P1 = FiniteElement(self.fe['type'], self.mesh.ufl_cell(), self.fe['degree'])
-        
+                
         # State variables r and theta are 3 dimensional vector-valued functions of s                        
         P1_3 = MixedElement([P1] * 3)
 
@@ -299,11 +299,31 @@ class Worm:
             - dot(M, grad(phi_theta)) * dx
         )
         
-        equation = eq1 + eq2
+        # Include boundaries        
+        boundary_term_left = u * v * ds_left(1)  # Subdomain ID 1 corresponds to the left boundary
+        boundary_term_right = u * v * ds_right(2)  # Subdomain ID 2 corresponds to the right boundary
         
+        equation = eq1 + eq2
+                
         self.F_op, self.L = lhs(equation), rhs(equation)
                                 
         return
+
+    def include_boundary(self):
+        
+        # Define the left boundary condition
+        def left_boundary(x, on_boundary):
+            return on_boundary and near(x[0], 0.0)
+        
+        # Define the right boundary condition
+        def right_boundary(x, on_boundary):
+            return on_boundary and near(x[0], 1.0)
+        
+        # Create boundary measures for the left and right boundaries
+        ds_left = Measure('ds', domain=mesh, subdomain_data=mesh.domains(), subdomain_id=1)
+        ds_right = Measure('ds', domain=mesh, subdomain_data=mesh.domains(), subdomain_id=2)
+
+        return ds_left, ds_right
 
     def _print(self, s):
         # todo: proper logging!
