@@ -31,9 +31,9 @@ class Experiment(ABC):
         # Muscle parameter 
         parser.add_argument('--gsmo', action = BooleanOptionalAction, default = True,
             help = 'If true, muscles have a gradual spatial onset at the head and tale')
-        parser.add_argument('--Ds_h', type = bool, default = 0.01,
+        parser.add_argument('--Ds_h', type = float, default = 0.01,
             help = 'Sigmoid slope at the head')
-        parser.add_argument('--Ds_t', type = bool, default = 0.01,
+        parser.add_argument('--Ds_t', type = float, default = 0.01,
             help = 'Sigmoid slope at the tale')    
         parser.add_argument('--s0_h', type = float, default = 3*0.01,
             help = 'Sigmoid midpoint at the head')
