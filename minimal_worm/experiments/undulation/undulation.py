@@ -7,7 +7,8 @@ Created on 14 Jun 2023
 #Third-party
 from argparse import Namespace
 import numpy as np
-from fenics import Expression, Constant
+# from fenics import Expression, Constant
+from fenics import *
 
 #Local
 from minimal_worm.experiments import Experiment
@@ -102,19 +103,49 @@ class UndulationExperiment(Experiment):
         deg = len(coeff)-1                 
         # Convert polynomial to fenics Expressions         
         expr_str = ''.join([f"{signs[i]}{np.abs(c)}*pow(x[0], {deg-i})" for i, c in enumerate(coeff)]) 
-        
+                
         # Create a FEniCS Expression using the string
         A_expr = Expression(expr_str, degree=1)
         
         t = Constant(0.0)
-                                                                                                            
-        k0 = Expression(("A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
-            degree=1, t = t, A = A_expr, q = q)   
+
+        # Gradual muscle activation onset at head and tale
+        if param.gsmo:       
+                        
+            sh, st = UndulationExperiment.spatial_gmo(param)                                                                                                                    
+            k0 = Expression(("sh*st*A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
+                degree=1, t = t, A = A_expr, q = q, sh=sh, st=st)   
+        else:
+            k0 = Expression(("A*sin(q*x[0] - 2*pi*t)", "0", "0"), 
+                degree=1, t = t, A = A_expr, q = q)   
                   
         sig0 = Constant((0, 0, 0))    
     
+        #UndulationExperiment.plot_A_arr(A_expr, sh, st, param.N)
+    
         return {'k0': k0, 'sig0': sig0, 't': t}
 
+    @staticmethod
+    def plot_A_arr(A, sh, st, N):
+        
+        mesh = UnitIntervalMesh(N - 1)
+        P1 = FiniteElement('Lagrange', mesh.ufl_cell(), 1)
+        V = FunctionSpace(mesh, P1)
+        
+        V = FunctionSpace(mesh, P1)
+        f = Function(V)
+        f.assign(A)        
+        A_arr = f.compute_vertex_values()
+        f.assign(sh)        
+        sh_arr = f.compute_vertex_values()
+        f.assign(st)        
+        st_arr = f.compute_vertex_values()
 
-    
-    
+        A_arr = A_arr*sh_arr*st_arr
+
+        import matplotlib.pyplot as plt
+                
+        plt.plot(A_arr)
+        plt.show()
+
+        return

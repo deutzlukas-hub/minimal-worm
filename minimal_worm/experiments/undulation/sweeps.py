@@ -1,3 +1,4 @@
+
 '''
 Created on 15 Jun 2023
 
@@ -1570,7 +1571,7 @@ def sweep_C_mu_c_lam_fang_yen(argv):
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
-
+    
     if sweep_param.pool:        
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
@@ -1830,7 +1831,7 @@ def sweep_f_rikmenspoel(argv):
         f'raw_data_rikmenspoel_'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
         f'const_A={sweep_param.const_A}_'
-        f'phi={model_param.phi}_T={model_param.T}_'
+        f'phi={model_param.phi}_T={model_param.T}_gmso={model_param.gsmo}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
@@ -1943,7 +1944,7 @@ def sweep_f_lam_rikmenspoel(argv):
         f'raw_data_rikmenspoel_'
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'                        
-        f'phi={model_param.phi}_T={model_param.T}_'
+        f'phi={model_param.phi}_T={model_param.T}_gmso={model_param.gsmo}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
@@ -2061,7 +2062,7 @@ def sweep_f_c_lam_rikmenspoel(argv):
         f'f_min={f_min}_f_max={f_max}_f_step={f_step}_'                
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'                
         f'lam_min={lam_min}_lam_max={lam_max}_f_step={lam_step}_'                        
-        f'phi={model_param.phi}_T={model_param.T}_'
+        f'phi={model_param.phi}_T={model_param.T}_gmso={model_param.gsmo}_'
         f'N={model_param.N}_dt={model_param.dt}.h5')
     
     h5_filepath = sweep_dir / filename
