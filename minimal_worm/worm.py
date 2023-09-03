@@ -298,11 +298,7 @@ class Worm:
             + dot(T_h * N, phi_theta) * dx
             - dot(M, grad(phi_theta)) * dx
         )
-        
-        # Include boundaries        
-        boundary_term_left = u * v * ds_left(1)  # Subdomain ID 1 corresponds to the left boundary
-        boundary_term_right = u * v * ds_right(2)  # Subdomain ID 2 corresponds to the right boundary
-        
+                
         equation = eq1 + eq2
                 
         self.F_op, self.L = lhs(equation), rhs(equation)
@@ -311,6 +307,10 @@ class Worm:
 
     def include_boundary(self):
         
+        # Include boundaries        
+        # boundary_term_left = u * v * ds_left(1)  # Subdomain ID 1 corresponds to the left boundary
+        # boundary_term_right = u * v * ds_right(2)  # Subdomain ID 2 corresponds to the right boundary
+                
         # Define the left boundary condition
         def left_boundary(x, on_boundary):
             return on_boundary and near(x[0], 0.0)
