@@ -1976,7 +1976,7 @@ def sweep_xi_f_lam_rikmenspoel(argv):
     sweep_parser.add_argument('--freq', 
         type=float, nargs=3, default = [10, 50, 5.0])    
     sweep_parser.add_argument('--lam', 
-        type=float, nargs=3, default = [0.4, 2.0, 0.1])
+        type=float, nargs=3, default = [0.5, 2.0, 0.1])
     
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
