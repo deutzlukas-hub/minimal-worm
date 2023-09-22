@@ -106,12 +106,31 @@ def parameter_parser():
     param.add_argument('--dt_report', type = lambda v: None if v.lower()=='none' else float(v), 
         default = None, help = 'Save simulation results only every dt_report time step')
 
+    # Pircard iteration
+    param.add_argument('--pic_on', action = BooleanOptionalAction, default = False, 
+        help = 'If true, use picard iteration to solve nonlinear problem')
+    param.add_argument('--pic_max_iter', type = int, default = 100, 
+        help = 'Maximum number of iteration steps')
+    param.add_argument('--pic_lr', type = float, default = 0.5, 
+        help = 'Learning rate ')
+    param.add_argument('--pic_tol', type = float, default = 1e-2, 
+        help = 'Learning rate ')
+
     # Solver parameter
     param.add_argument('--fdo', type = int, default = 2, 
         help = 'Order of finite backwards difference')
                 
     return param    
 
+def pic_param(param):
+            
+    picard = {} 
+    picard['on'] = param.pic_on
+    picard['max_iter'] = param.pic_max_iter
+    picard['lr'] = param.pic_lr
+    picard['tol'] = param.pic_tol
+    
+    return picard
 
 def radius_shape_function(
         plot = False):
@@ -580,7 +599,7 @@ class ModelParameter():
                 assert False
                            
         return C, D, Y, S, S_tilde, B, B_tilde,        
-    
+
 if __name__ == '__main__':
     
     radius_shape_function(plot=True)    

@@ -14,6 +14,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from scipy.interpolate import splprep, splev
 from scipy.optimize import minimize_scalar
+from scipy.interpolate import UnivariateSpline
 
 class PostProcessor(object):
     '''
@@ -296,9 +297,8 @@ class PostProcessor(object):
     def comp_optimal_c_and_wavelength(U, W, A, c_arr, lam_arr,
             levels = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]):
         '''
-        Finds the curvature amplitude wavenumber ratio c and 
-        wavelength lambda which minimizes the mechanical muscle work 
-        for contour lines of equal swimming speed.
+        Finds the shape factor c and wavelength lambda which minimizes 
+        the mechanical muscle work for contour lines of equal swimming speed.
         
         To achieve a swimming speed U < U_max, which c and lambda 
         requires the least energy                                   
@@ -424,6 +424,78 @@ class PostProcessor(object):
                                             
         return result
     
+    @staticmethod 
+    def comp_optimal_wavelength(
+            U, 
+            W, 
+            f_arr, 
+            lam_arr, 
+            levels,
+            N=1000):
+        '''
+        Finds the shape factor the wavelength lambda which minimizes 
+        the mechanical muscle work
+        
+        To achieve a swimming speed U < U_max lower than the maximum 
+        swimming speed, which lambda requires the least energy?                                   
+        '''        
+        
+        # Define containers for results
+        lam_max_arr = np.zeros(len(f_arr))    
+        W_max_arr = np.zeros_like(lam_max_arr)
+    
+        lam_opt_mat = np.zeros((len(levels), len(f_arr)))
+        W_opt_mat = np.zeros_like(lam_opt_mat)
+                    
+        U_mat, W_mat = np.zeros((len(f_arr), N)), np.zeros((len(f_arr), N))
+
+        # Define finer grid to determine optimal wavelength 
+        lam_refined_arr = np.linspace(lam_arr.min(), lam_arr.max(), N)   
+
+        # Iterate over frequencies                                                        
+        for i, _ in enumerate(f_arr):
+            
+            U_star_norm_arr = U[i, :] 
+            W_star_arr = W[i, :]
+                    
+            U_fit = UnivariateSpline(lam_arr, U_star_norm_arr, s = 0.0)
+            W_fit = UnivariateSpline(lam_arr, W_star_arr, s = 0.0)
+            
+            U_star_norm_refined_arr = U_fit(lam_refined_arr)
+            W_star_norm_refined_arr = W_fit(lam_refined_arr) 
+             
+            U_mat[i, :] = U_star_norm_refined_arr
+            W_mat[i, :] = W_star_norm_refined_arr
+            
+            # Iterate over levels and find optimal wavelength
+            # to achieve level*U_max speed with minimal cost
+            # for given frequency
+            for j, level in enumerate(levels):            
+                
+                # Find wavelength for which U=level*U_max 
+                zc_idx_arr = np.where(np.diff(
+                    np.sign(U_star_norm_refined_arr - U_star_norm_refined_arr.max()*level)))[0]                
+                
+                # Find wavelength which minimizes 
+                W_star_min, lam_opt = np.inf, np.nan
+                    
+                for idx in zc_idx_arr:                                 
+                    
+                    W_star_level = W_star_norm_refined_arr[idx]
+                    
+                    if W_star_level < W_star_min:
+                        lam_opt = lam_refined_arr[idx]
+                        W_star_min = W_star_level 
+                        
+                lam_opt_mat[j, i] = lam_opt
+                W_opt_mat[j, i] = W_star_min
+                            
+            max_idx = U_star_norm_refined_arr.argmax()
+            lam_max_arr[i] = lam_refined_arr[max_idx]
+            W_max_arr[i] = W_star_norm_refined_arr[max_idx]
+    
+        return lam_max_arr, lam_opt_mat, W_max_arr, W_opt_mat, U_mat, W_mat, lam_refined_arr
+
     @staticmethod    
     def physical_2_dimless_parameters(param, **kwargs):
         '''

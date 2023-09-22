@@ -337,6 +337,7 @@ class Worm:
         FK: List,        
         F0: Optional[Frame] = None,
         solver: Dict = None,
+        picard: Dict = None,
         pbar: bool = None,
         logger = None, 
         dt_report: Optional[float] = None,
@@ -349,9 +350,11 @@ class Worm:
         
         self.cache = {}
         
-        if solver is not None:        
-            self.solver = Worm.solver.update(solver)
-
+        if solver is not None:
+            Worm.solver.update(solver)        
+        
+        self.picard = picard
+        
         if pbar is not None:
             pbar.total = self.n
         self.logger = logger
@@ -424,6 +427,7 @@ class Worm:
         CS: Dict, 
         F0=None, 
         solver = None,
+        picard = None,
         FK = None,
         pbar=None, 
         logger=None, 
@@ -441,7 +445,7 @@ class Worm:
             FK = FRAME_KEYS
         
         self.initialise(
-            MP, CS, FK, F0, solver, pbar, logger, dt_report, N_report
+            MP, CS, FK, F0, solver, picard, pbar, logger, dt_report, N_report
         )
 
         self._print(f'Solve forward' 
@@ -510,7 +514,12 @@ class Worm:
         self.u_h.assign(self.u_old_arr[-1])
 
         u = Function(self.W)
-        solve(self.F_op == self.L, u, solver_parameters=self.solver)
+        
+        if self.picard['on']:
+            self.picard_iteration()
+        else:        
+            solve(self.F_op == self.L, u, solver_parameters=Worm.solver)
+        
         assert not np.isnan(u.vector().get_local()).any(), (
             f'Solution at t={self._t:.{self.D}f} contains nans!')
         
@@ -533,6 +542,60 @@ class Worm:
 
         return F, C
 
+    def picard_iteration(self):
+
+        """Solve nonlinear system of equations using picard iteration"""
+
+        # Trial function
+        u = Function(self.W)
+        
+        # Solution from previous time step
+        u_old = self.u_old_arr[-1]
+        r_old, theta_old = u_old.split()        
+        r_old_arr = r_old.compute_vertex_values(self.mesh).reshape(3, self.N)
+        theta_old_arr = theta_old.compute_vertex_values(self.mesh).reshape(3, self.N) 
+                
+        # Initial guess        
+        self.u_h.assign(u_old)
+
+        tol = self.picard['tol']
+        lr = self.picard['lr'] 
+        maxiter = self.picard['max_iter'] 
+        
+        i = 0
+        converged = False
+                
+        while i < maxiter:            
+            solve(self.F_op == self.L, u, solver_parameters=Worm.solver)
+            r, theta = u.split()
+            r_h, theta_h = self.u_h.split()
+            
+            # Error   
+            err_r = assemble(sqrt((r-r_h)**2)*dx)
+            err_theta = assemble(sqrt((theta-theta_h)**2)*dx)
+                        
+            # Normalize by average change per time step            
+            norm_r = assemble(sqrt((r - r_old)**2)*dx)
+            norm_theta = assemble(sqrt((theta - theta_old)**2)*dx)
+            
+            rel_err_r  = err_r / max(norm_r, 1.0e-12)
+            rel_err_theta  = err_theta / max(norm_theta, 1.0e-12)
+                                                            
+            if rel_err_r < tol and rel_err_theta < tol:                
+                if not self.quiet:
+                    print(
+                        f"Picard iteration converged after {i} iterations: err_r={err_r}, err_theta={err_theta}"
+                    )
+                converged = True
+                break
+
+            self.u_h.assign(lr * u + (1.0 - lr) * self.u_h)
+            i += 1
+            
+        assert converged, 'Picard iteration did not converge'
+
+        return
+                                        
     def _assemble_frame(self):
         '''
         Assemble frames

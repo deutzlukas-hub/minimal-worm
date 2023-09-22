@@ -18,7 +18,7 @@ from tqdm import tqdm
 # Local imports
 from minimal_worm import Worm
 from minimal_worm import FrameSequence
-from minimal_worm import ModelParameter, parameter_parser, physical_to_dimless_parameters
+from minimal_worm import ModelParameter, parameter_parser, physical_to_dimless_parameters, pic_param
 from mp_progress_logger import FWException
             
 class Experiment(ABC):      
@@ -133,6 +133,7 @@ class Experiment(ABC):
 def simulate_experiment(worm: Worm,
                         param: Namespace,
                         CS: Dict,
+                        solver: Dict = None,
                         F0: Tuple[FrameSequence, None] = None,
                         FK: List[str] = None,
                         pbar: Tuple[tqdm, None] = None,
@@ -150,8 +151,9 @@ def simulate_experiment(worm: Worm,
     physical_to_dimless_parameters(param)
     
     MP = ModelParameter(param)
+    picard = pic_param(param)
                         
-    FS, CS, e = worm.solve(param.T, MP, CS, F0, FK=FK, pbar=pbar, 
+    FS, CS, e = worm.solve(param.T, MP, CS, F0, solver, picard=picard, FK=FK, pbar=pbar, 
         logger=logger, dt_report=param.dt_report, N_report=param.N_report) 
                               
     return FS, CS, MP, e
