@@ -2024,6 +2024,10 @@ def sweep_xi_f_lam_rikmenspoel(argv):
     xi_min, xi_max, xi_step = sweep_param.xi[0], sweep_param.xi[1], sweep_param.xi[2]            
     f_min, f_max, f_step = sweep_param.freq[0], sweep_param.freq[1], sweep_param.freq[2] 
 
+    # # The smaller xi the smaller the time step needs to be
+    # dt_arr = [1e-4 if xi < -2 else 1e-3 for xi in xi_exp_arr]
+    # dt_param = {'v_arr': dt_arr, 'round': 4}
+
     eta_param = {'v_min': xi_min, 'v_max': xi_max + 0.1*xi_step, 
         'N': None, 'step': xi_step, 'round': 0, 'log': True, 'scale': model_param.E.magnitude, 'quantity': 'pascal*second'}
 

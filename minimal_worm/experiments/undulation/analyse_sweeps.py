@@ -50,7 +50,7 @@ def analyse(
     if what_to_calculate.k_norm:
         k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)        
         h5_analysis.create_dataset('k_norm', data = k_norm)
-    if what_to_calculate.k_norm:
+    if what_to_calculate.sig_norm:
         sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
         h5_analysis.create_dataset('sig_norm', data = sig_norm)            
     if what_to_calculate.A:    

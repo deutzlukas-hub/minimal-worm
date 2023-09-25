@@ -110,16 +110,60 @@ def test_W_over_S(h5_filename: str):
     print('Passed test: W over S')
     
     return
-            
+
+
+def fit():
+    
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy.optimize import curve_fit
+    
+    # Given data
+    x_data = np.array([0.000, 0.966, 2.085, 2.482, 2.902, 3.142, 3.955, 4.448])
+    y_data = np.array([2.872, 3.126, 3.290, 3.535, 4.772, 4.817, 6.226, 6.735])
+        
+    # Sigmoid function to fit
+    def sigmoid(x, a, b, c, d):
+        return a + b / (1 + np.exp(-c * (x - d)))
+    
+    # Fit the sigmoid function to the data
+    popt, _ = curve_fit(sigmoid, x_data, y_data)
+    
+    # Extract the optimized parameters
+    a_opt, b_opt, c_opt, d_opt = popt
+    
+    # Generate points for the fitted sigmoid curve
+    x_fit = np.linspace(0, 5, 100)
+    y_fit = sigmoid(x_fit, a_opt, b_opt, c_opt, d_opt)
+    
+    # Plot the data and the fitted sigmoid curve
+    plt.scatter(x_data, y_data, label='Data')
+    plt.plot(x_fit, y_fit, label='Fitted Sigmoid')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    print("Optimized parameters:")
+    print(f"a_opt: {a_opt}")
+    print(f"b_opt: {b_opt}")
+    print(f"c_opt: {c_opt}")
+    print(f"d_opt: {d_opt}")
+
+    return
+    
 if __name__ == '__main__':
     
-    h5_a_b = ('analysis_'
-        'a_min=-2.0_a_max=3.0_step_a=0.2_'
-        'b_min=-3.0_b_max=0.0_step_b=0.2_'
-        'A=4.0_lam=1.0_T=5.0_'
-        'N=250_dt=0.001.h5')
+    # h5_a_b = ('analysis_'
+    #     'a_min=-2.0_a_max=3.0_step_a=0.2_'
+    #     'b_min=-3.0_b_max=0.0_step_b=0.2_'
+    #     'A=4.0_lam=1.0_T=5.0_'
+    #     'N=250_dt=0.001.h5')
+    #
+    # test_W_over_S(h5_a_b)
     
-    test_W_over_S(h5_a_b)
+    fit()
     
     # h5_a_b = ('raw_data_'
     #     'a_min=-2.0_a_max=3.0_step_a=1.0_'
