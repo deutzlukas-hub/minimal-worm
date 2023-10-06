@@ -367,7 +367,7 @@ class Worm:
 
         if dt_report is not None:            
             if dt_report == self.dt:
-                self.dt = None
+                self.t_step = None 
             else:
                 assert dt_report > self.dt, (f'Reported time step dt_report={dt_report} ' 
                 f'must be larger than simulation time step dt={self.dt}')                                            
