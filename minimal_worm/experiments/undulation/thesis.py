@@ -7,7 +7,6 @@ Created on 15 Jun 2023
 from pathlib import Path
 from sys import argv
 from argparse import ArgumentParser, BooleanOptionalAction
-from types import SimpleNamespace
 #from decimal import Decimal
 
 # Third-party
@@ -110,13 +109,18 @@ def default_sweep_parameter():
         help = 'If true, save controls')
 
     # Analyse  
+    parser.add_argument('--R', action=BooleanOptionalAction, default = False,
+        dest = 'R', help = 'If true, calculate final position of centroid')        
     parser.add_argument('--U', action=BooleanOptionalAction, default = True,
         help = 'If true, calculate swimming speed U')
     parser.add_argument('--E', action=BooleanOptionalAction, default = True,
         help = 'If true, calculate L2 norm between real and preferred curvature')
-    parser.add_argument('--A', action=BooleanOptionalAction, default = True,
+    parser.add_argument('--A', action=BooleanOptionalAction, default = False,
         dest = 'A', help = 'If true, calculate real curvature amplitude')
-
+    parser.add_argument('--k_norm', action=BooleanOptionalAction, default = False,
+        dest = 'k_norm', help = ('If true, calculate L2 norm between real and preferred curvature'))
+    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = False,
+        dest = 'sig_norm', help = 'If true, calculate L2 norm between real and preferred strain')
     return parser
 
 def sweep_N_dt_k(argv):
@@ -219,9 +223,10 @@ def sweep_N_dt_k(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        analyse(h5_filepath, what_to_calculate={'R': True, 'U': True, 'E': True})
-    
+        sweep_param.R = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
+
 
 if __name__ == '__main__':
         

@@ -26,8 +26,6 @@ def analyse(
         what_to_calculate: List[str] = None
 ):
 
-    if isinstance(what_to_calculate, dict):
-        what_to_calculate = SimpleNamespace(**what_to_calculate)
             
     if analysis_filepath is None:
         assert raw_data_filepath.name.startswith('raw_data') 
@@ -42,7 +40,7 @@ def analyse(
     # Compute energies from last period
     T = h5_raw_data.attrs['T']
     Delta_t = T - 1
-                
+    
     if what_to_calculate.R:
         R = compute_final_centroid_destination(h5_raw_data)
         h5_analysis.create_dataset('R', data = R)            
