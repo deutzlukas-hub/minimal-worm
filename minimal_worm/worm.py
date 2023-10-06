@@ -365,18 +365,24 @@ class Worm:
         # Get time steps number of significant digits after decimal point
         self.sd = len(str(self.dt)) - str(self.dt).find('.') - 1  
 
-        if dt_report is not None:
-            assert dt_report > self.dt, (f'reported time step dt_report={dt_report} ' 
-                f'must be larger than simulation time step dt={self.dt}')
-            self.t_step = round(dt_report/self.dt)
+        if dt_report is not None:            
+            if dt_report == self.dt:
+                self.dt = None
+            else:
+                assert dt_report > self.dt, (f'Reported time step dt_report={dt_report} ' 
+                f'must be larger than simulation time step dt={self.dt}')                                            
+                self.t_step = round(dt_report/self.dt)
         else:
             self.t_step = None
             
         if N_report is not None:
-            assert N_report < self.N, (f'reported number of body points along ' 
-                f'the centreline N_report={N_report}, must be smaller than ' 
-                f'total number of body points N={self.N}')
-            self.s_step = round(self.N/N_report) 
+            if N_report == self.N:
+                self.s_step = None
+            else:            
+                assert N_report < self.N, (f'The reported numbers of mesh points along ' 
+                    f'the centreline N_report={N_report}, must be smaller than ' 
+                    f'the total number of mesh points N={self.N}')
+                self.s_step = round(self.N/N_report) 
         else: 
             self.s_step = None
         
