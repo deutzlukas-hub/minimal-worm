@@ -11,8 +11,6 @@ from argparse import ArgumentParser, BooleanOptionalAction
 
 # Third-party
 from parameter_scan import ParameterGrid
-import numpy as np
-from scipy.optimize import curve_fit
 import pint
 
 # Local imports
@@ -131,16 +129,8 @@ def sweep_N_dt_k(argv):
 
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
-
-    # sweep_parser.add_argument('--N', 
-    #     type=float, nargs=3, default = [100, 500, 100])    
-    # sweep_parser.add_argument('--dt', 
-    #     type=float, nargs=3, default = [-3, 0, 1.0])    
-    # sweep_parser.add_argument('--k', 
-    #     type=int, nargs=3, default = [1, 3, 1])    
-
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
-        
+    
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
     # if it should be saved 
@@ -151,6 +141,18 @@ def sweep_N_dt_k(argv):
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
 
+    # Customize parameter
+    model_param.pic_on = True
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.use_c = True
+    model_param.c = 1.0 
+    model_param.dt = 0.01
+    model_param.N = 250
+    model_param.T = 1.0
+    
     # Print all model parameter whose value has been
     # set via the command line
     cml_args = {k: v for k, v in vars(model_param).items() 
@@ -159,7 +161,7 @@ def sweep_N_dt_k(argv):
     if len(cml_args) != 0: 
         print(cml_args)
 
-    dt_arr = [1e-2, 1e-3, 1e-4, 1e-5]
+    dt_arr = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
     N_arr = [125, 250, 500, 1000, 2000]
     k_arr = [1,2,3]
     
@@ -195,7 +197,7 @@ def sweep_N_dt_k(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'A={model_param.A}_lam={model_param.lam}_'
+        f'c={model_param.c}_lam={model_param.lam}_'
         f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
     
     h5_filepath = sweep_dir / filename
