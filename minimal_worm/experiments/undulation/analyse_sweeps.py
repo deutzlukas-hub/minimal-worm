@@ -83,7 +83,7 @@ def compute_final_centroid_destination(h5: h5py):
     r = h5['FS']['r'][:, -1, :, :]        
     R = r.mean(axis = 2)
     
-    return R.reshape(h5.attrs['shape'] + (3, ))
+    return R.reshape(np.append(h5.attrs['shape'], 3))
 
 def compute_average_curvature_norm(h5: h5py, Delta_t: float = 2.0):
     '''
