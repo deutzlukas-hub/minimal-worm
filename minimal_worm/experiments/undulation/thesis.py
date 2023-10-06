@@ -129,12 +129,13 @@ def sweep_N_dt_k(argv):
 
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
-    sweep_param = sweep_parser.parse_known_args(argv)[0]    
 
-    sweep_parser.add_argument('--dt', 
+    sweep_parser.add_argument('--dt_arr', 
         type=float, nargs='*', default = [1e-2, 1e-3, 1e-4])    
-    sweep_parser.add_argument('--N', 
-        type=float, nargs='*', default = [125, 250, 500])    
+    sweep_parser.add_argument('--N_arr', 
+        type=int, nargs='*', default = [125, 250, 500])    
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
@@ -170,8 +171,8 @@ def sweep_N_dt_k(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments
-    dt_arr = sweep_param.dt 
-    N_arr = sweep_param.N
+    dt_arr = sweep_param.dt_arr
+    N_arr = sweep_param.N_arr
 
     # dt_arr = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
     # N_arr = [125, 250, 500, 1000, 2000]
