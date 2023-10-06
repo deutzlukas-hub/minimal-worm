@@ -25,7 +25,6 @@ def analyse(
         analysis_filepath: Tuple[Path, None] = None,
         what_to_calculate: List[str] = None
 ):
-
             
     if analysis_filepath is None:
         assert raw_data_filepath.name.startswith('raw_data') 

@@ -117,10 +117,7 @@ def default_sweep_parameter():
         help = 'If true, calculate L2 norm between real and preferred curvature')
     parser.add_argument('--A', action=BooleanOptionalAction, default = False,
         dest = 'A', help = 'If true, calculate real curvature amplitude')
-    parser.add_argument('--k_norm', action=BooleanOptionalAction, default = False,
-        dest = 'k_norm', help = ('If true, calculate L2 norm between real and preferred curvature'))
-    parser.add_argument('--sig_norm', action=BooleanOptionalAction, default = False,
-        dest = 'sig_norm', help = 'If true, calculate L2 norm between real and preferred strain')
+ 
     return parser
 
 def sweep_N_dt_k(argv):
