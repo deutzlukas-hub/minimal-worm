@@ -513,11 +513,11 @@ class Worm:
         self._update_control(CS)
         self.u_h.assign(self.u_old_arr[-1])
 
-        u = Function(self.W)
         
         if self.picard['on']:
-            self.picard_iteration()
+            u = self.picard_iteration()
         else:        
+            u = Function(self.W)            
             solve(self.F_op == self.L, u, solver_parameters=Worm.solver)
         
         assert not np.isnan(u.vector().get_local()).any(), (
@@ -594,7 +594,7 @@ class Worm:
             
         assert converged, 'Picard iteration did not converge'
 
-        return
+        return u
                                         
     def _assemble_frame(self):
         '''

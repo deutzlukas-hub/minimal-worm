@@ -130,6 +130,11 @@ def sweep_N_dt_k(argv):
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
+
+    sweep_parser.add_argument('--dt', 
+        type=float, nargs='*', default = [1e-2, 1e-3, 1e-4])    
+    sweep_parser.add_argument('--N', 
+        type=float, nargs='*', default = [125, 250, 500])    
     
     # The argumentparser for the sweep parameter has a boolean argument 
     # for ever frame key and control key which can be set to true
@@ -152,6 +157,8 @@ def sweep_N_dt_k(argv):
     model_param.dt = 0.01
     model_param.N = 250
     model_param.T = 1.0
+    model_param.dt_report = 0.01
+    model_param.N_report = 125
     
     # Print all model parameter whose value has been
     # set via the command line
@@ -161,15 +168,20 @@ def sweep_N_dt_k(argv):
     if len(cml_args) != 0: 
         print(cml_args)
 
-    dt_arr = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
-    N_arr = [125, 250, 500, 1000, 2000]
-    k_arr = [1,2,3]
+    # Create the ParameterGrid over which we want to run
+    # the undulation experiments
+    dt_arr = sweep_param.dt 
+    N_arr = sweep_param.N
+
+    # dt_arr = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
+    # N_arr = [125, 250, 500, 1000, 2000]
+    # k_arr = [1,2,3]
     
     dt_param = {'v_arr': dt_arr, 'round': 5}    
     N_param = {'v_arr': N_arr, 'round': None, 'int': True}
-    k_param = {'v_arr': k_arr, 'round': None, 'int': True}
+    # k_param = {'v_arr': k_arr, 'round': None, 'int': True}
 
-    grid_param = {'dt': dt_param, 'N': N_param, 'fdo': k_param}
+    grid_param = {'dt': dt_param, 'N': N_param} #'fdo': k_param}
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
