@@ -80,7 +80,7 @@ def compute_final_centroid_destination(h5: h5py):
     :param h5:
     '''
 
-    r = h5['r'][:, -1, :, :]        
+    r = h5['FS']['r'][:, -1, :, :]        
     R = r.mean(axis = 2)
     
     return R.reshape(h5.attrs['shape'])
