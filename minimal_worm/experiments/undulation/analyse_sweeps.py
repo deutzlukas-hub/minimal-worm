@@ -8,6 +8,7 @@ from sys import argv
 from typing import Tuple, List
 from argparse import ArgumentParser
 from pathlib import Path
+from types import SimpleNamespace
         
 # Third-party
 import numpy as np
@@ -25,6 +26,9 @@ def analyse(
         what_to_calculate: List[str] = None
 ):
 
+    if isinstance(what_to_calculate, dict):
+        what_to_calculate = SimpleNamespace(**what_to_calculate)
+            
     if analysis_filepath is None:
         assert raw_data_filepath.name.startswith('raw_data') 
         analysis_filepath = ( raw_data_filepath.parent
@@ -39,20 +43,28 @@ def analyse(
     T = h5_raw_data.attrs['T']
     Delta_t = T - 1
                 
+    if what_to_calculate.R:
+        R = compute_final_centroid_destination(h5_raw_data)
+        h5_analysis.create_dataset('R', data = R)            
+    
     if what_to_calculate.U:                    
         U = compute_swimming_speed(h5_raw_data, Delta_t)
         h5_analysis.create_dataset('U', data = U)
+    
     if what_to_calculate.E:    
         E_dict = compute_energies(h5_raw_data) 
         grp = h5_analysis.create_group('energies')
         for k, E in E_dict.items():
             grp.create_dataset(k, data = E)         
+    
     if what_to_calculate.k_norm:
         k_norm = compute_average_curvature_norm(h5_raw_data, Delta_t)        
         h5_analysis.create_dataset('k_norm', data = k_norm)
+    
     if what_to_calculate.sig_norm:
         sig_norm = compute_average_sig_norm(h5_raw_data, Delta_t)
         h5_analysis.create_dataset('sig_norm', data = sig_norm)            
+    
     if what_to_calculate.A:    
         A_max, A_min = compute_average_curvature_amplitude(h5_raw_data, Delta_t)        
         h5_analysis.create_dataset('A_max', data = A_max)
@@ -61,6 +73,17 @@ def analyse(
     print(f'Saved Analysis to {analysis_filepath}')    
     
     return
+
+def compute_final_centroid_destination(h5: h5py):
+    '''
+    Computes the final centroid destination
+    :param h5:
+    '''
+
+    r = h5['r'][:, -1, :, :]        
+    R = r.mean(axis = 2)
+    
+    return R.reshape(h5.attrs['shape'])
 
 def compute_average_curvature_norm(h5: h5py, Delta_t: float = 2.0):
     '''

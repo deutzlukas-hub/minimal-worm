@@ -7,6 +7,7 @@ Created on 15 Jun 2023
 from pathlib import Path
 from sys import argv
 from argparse import ArgumentParser, BooleanOptionalAction
+from types import SimpleNamespace
 #from decimal import Decimal
 
 # Third-party
@@ -118,7 +119,6 @@ def default_sweep_parameter():
 
     return parser
 
-
 def sweep_N_dt_k(argv):
     '''
     Parameter sweep over time scale ratios a and b
@@ -219,8 +219,9 @@ def sweep_N_dt_k(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        analyse(h5_filepath, what_to_calculate=sweep_param)
-                
+        analyse(h5_filepath, what_to_calculate={'R': True, 'U': True, 'E': True})
+    
+    return
 
 if __name__ == '__main__':
         
