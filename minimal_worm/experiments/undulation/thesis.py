@@ -208,6 +208,7 @@ def sweep_N_dt_k(argv):
     filename = Path(
         f'raw_data_'
         f'c={model_param.c}_lam={model_param.lam}_'
+        f'dt_arr={dt_arr}_N_arr={N_arr}_'                
         f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
     
     h5_filepath = sweep_dir / filename
