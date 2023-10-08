@@ -132,9 +132,11 @@ def sweep_N_dt_k(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--dt_arr', 
-        type=float, nargs='*', default = [1e-2, 1e-3, 1e-4])    
+        type=float, nargs='*', default = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4])    
     sweep_parser.add_argument('--N_arr', 
-        type=int, nargs='*', default = [125, 250, 500])    
+        type=int, nargs='*', default = [125, 250, 500, 750, 1000])    
+    sweep_parser.add_argument('--k_arr', 
+        type=int, nargs='*', default = [1, 2, 3, 4, 5])    
 
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
@@ -157,7 +159,9 @@ def sweep_N_dt_k(argv):
     model_param.use_c = True
     model_param.c = 1.0 
     model_param.T = 5.0
-    
+    model_param.dt_report = 0.01
+    model_param.N_report = 125
+
     # Print all model parameter whose value has been
     # set via the command line
     cml_args = {k: v for k, v in vars(model_param).items() 
@@ -170,16 +174,16 @@ def sweep_N_dt_k(argv):
     # the undulation experiments
     dt_arr = sweep_param.dt_arr
     N_arr = sweep_param.N_arr
+    k_arr = sweep_param.k_arr
 
     # dt_arr = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
     # N_arr = [125, 250, 500, 1000, 2000]
-    # k_arr = [1,2,3]
     
     dt_param = {'v_arr': dt_arr, 'round': 5}    
     N_param = {'v_arr': N_arr, 'round': None, 'int': True}
-    # k_param = {'v_arr': k_arr, 'round': None, 'int': True}
+    k_param = {'v_arr': k_arr, 'round': None, 'int': True}
 
-    grid_param = {'dt': dt_param, 'N': N_param} #'fdo': k_param}
+    grid_param = {'dt': dt_param, 'N': N_param, 'fdo': k_param}
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
@@ -208,7 +212,7 @@ def sweep_N_dt_k(argv):
     filename = Path(
         f'raw_data_'
         f'c={model_param.c}_lam={model_param.lam}_'
-        f'dt_arr={dt_arr}_N_arr={N_arr}_'                
+        f'dt_arr={dt_arr}_N_arr={N_arr}_k_arr_{k_arr}_'                
         f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
     
     h5_filepath = sweep_dir / filename
