@@ -158,7 +158,7 @@ def sweep_N_dt_k(argv):
     model_param.s0_t = 0.95
     model_param.use_c = True
     model_param.c = 1.0 
-    model_param.T = 0.1
+    model_param.T = 5.0
     model_param.dt_report = 0.01
     model_param.N_report = 125
 
