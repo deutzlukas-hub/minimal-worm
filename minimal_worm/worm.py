@@ -8,8 +8,8 @@ Created on 12 May 2022
 #Built-in imports
 from typing import Dict, Optional, Tuple, List
 from types import SimpleNamespace
-import logging
-import ffc
+import time
+
 
 # Third-part imports
 import numpy as np
@@ -445,6 +445,8 @@ class Worm:
         Run the forward model for T seconds.
         """
 
+        start_time = time.time()
+
         self.n = int(T / self.dt) # number of timesteps
         
         if FK is None:
@@ -486,7 +488,10 @@ class Worm:
 
         CS = {k: np.array([C[k] for C in Cs]) for k in CONTROL_KEYS}
         
-        return FrameSequence(FS), SimpleNamespace(**CS), None 
+        end_time = time.time()
+        sim_time = start_time - end_time 
+
+        return FrameSequence(FS), SimpleNamespace(**CS), None, sim_time 
         
     def _update_control(self, CS): 
         '''
