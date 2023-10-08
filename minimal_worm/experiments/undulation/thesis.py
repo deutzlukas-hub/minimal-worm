@@ -222,10 +222,96 @@ def sweep_N_dt_k(argv):
     return
 
 
-def sweep_eps():
+def sweep_k():
     '''
-    Parameter sweep over slenderness ratio
-    '''
+    Sweep over finite difference order 
+    '''    
+
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+
+    sweep_parser.add_argument('--k_arr', 
+        type=int, nargs='*', default = [1, 2, 3, 4, 5])
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+    
+    # The argumentparser for the sweep parameter has a boolean argument 
+    # for ever frame key and control key which can be set to true
+    # if it should be saved 
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]    
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    # Parse model paramete5
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.pic_on = True
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.use_c = True
+    model_param.c = 1.0 
+    model_param.T = 5.0
+    model_param.N = 500
+    model_param.dt = 0.001
+    
+    # Print all model parameter whose value has been
+    # set via the command line
+    cml_args = {k: v for k, v in vars(model_param).items() 
+        if v != model_parser.get_default(k)}
+    
+    if len(cml_args) != 0: 
+        print(cml_args)
+
+    # Create the ParameterGrid over which we want to run
+    # the undulation experiments
+    k_arr = sweep_param.k_arr
+    
+    k_param = {'k_arr': k_arr, 'round': None, 'int': True}    
+    grid_param = {'fdo': k_param}
+    
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+        
+    # Experiments are run using the Sweeper class for parallelization 
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+        
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'c={model_param.c}_lam={model_param.lam}_'
+        f'k_arr={k_arr}_'                
+        f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    if sweep_param.analyse:
+        sweep_param.R = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)    
+    return
+
     
     pass    
     
