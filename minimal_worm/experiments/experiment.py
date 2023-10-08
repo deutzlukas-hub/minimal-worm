@@ -153,10 +153,10 @@ def simulate_experiment(worm: Worm,
     MP = ModelParameter(param)
     picard = pic_param(param)
                         
-    FS, CS, e = worm.solve(param.T, MP, CS, F0, solver, picard=picard, FK=FK, pbar=pbar, 
+    FS, CS, e, sim_t = worm.solve(param.T, MP, CS, F0, solver, picard=picard, FK=FK, pbar=pbar, 
         logger=logger, dt_report=param.dt_report, N_report=param.N_report) 
                               
-    return FS, CS, MP, e
+    return FS, CS, MP, e, sim_t 
 
 
         

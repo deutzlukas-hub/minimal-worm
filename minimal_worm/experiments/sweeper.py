@@ -32,7 +32,8 @@ class Sweeper():
         CS: Namespace, 
         MP: ModelParameter, 
         param: Dict, 
-        exit_status: int = 1):
+        exit_status: int = 1,
+        sim_t = None):
         
         '''
         Save simulation results
@@ -51,7 +52,8 @@ class Sweeper():
         output['param'] = param
         output['MP'] = MP
         output['exit_status'] = exit_status
-            
+        output['sim_t'] = sim_t
+        
         output['FS'] = FS        
         output['CS'] = CS
                                  
@@ -113,7 +115,7 @@ class Sweeper():
         
         CS = create_CS(param)
     
-        FS, CS, MP, e = simulate_experiment(worm, param_ns, CS, 
+        FS, CS, MP, e, sim_t  = simulate_experiment(worm, param_ns, CS, 
             FK = FK, pbar = pbar, logger = logger)
                             
         if e is not None:
@@ -123,7 +125,7 @@ class Sweeper():
                     
         # Regardless if the simulation has finished or failed, simulation results
         # up to this point are saved to file         
-        Sweeper.save_output(filepath, FS, CS, MP, param, exit_status)                        
+        Sweeper.save_output(filepath, FS, CS, MP, param, exit_status, sim_t)                        
         logger.info(f'Task {task_number}: Saved file to {filepath}.')         
                     
         # If the simulation has failed then we reraise the exception

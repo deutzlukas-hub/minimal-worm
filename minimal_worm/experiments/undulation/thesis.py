@@ -221,7 +221,7 @@ def sweep_N_dt_k(argv):
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 
-def sweep_k(argv):
+def sweep_dt_k(argv):
     '''
     Sweep over finite difference order 
     '''    
@@ -229,6 +229,8 @@ def sweep_k(argv):
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
 
+    sweep_parser.add_argument('--dt_arr', 
+        type=int, nargs='*', default = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4])
     sweep_parser.add_argument('--k_arr', 
         type=int, nargs='*', default = [1, 2, 3, 4, 5])
 
@@ -254,7 +256,8 @@ def sweep_k(argv):
     model_param.c = 1.0 
     model_param.T = 5.0
     model_param.N = 500
-    model_param.dt = 0.001
+    model_param.dt_report = 0.01
+    model_param.N_report = 125
     
     # Print all model parameter whose value has been
     # set via the command line
@@ -266,10 +269,13 @@ def sweep_k(argv):
 
     # Create the ParameterGrid over which we want to run
     # the undulation experiments
+    dt_arr = sweep_param.dt_arr
     k_arr = sweep_param.k_arr
     
+    dt_param = {'v_arr': dt_arr, 'round': 5}    
     k_param = {'v_arr': k_arr, 'round': None, 'int': True}    
-    grid_param = {'fdo': k_param}
+
+    grid_param = {'dt': dt_param, 'fdo': k_param}
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
