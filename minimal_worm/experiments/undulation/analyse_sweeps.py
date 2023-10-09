@@ -34,6 +34,7 @@ def analyse(
     h5_raw_data = h5py.File(raw_data_filepath, 'r')
     h5_analysis = h5py.File(analysis_filepath, 'w')
 
+    h5_analysis.create_dataset('sim_t', data = h5_raw_data['sim_t'][:].reshape(h5_raw_data.attrs['shape']))
     h5_analysis.attrs.update(h5_raw_data.attrs)
     
     # Compute energies from last period

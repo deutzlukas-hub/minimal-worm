@@ -77,6 +77,7 @@ class Saver(ABC):
         h5.attrs['T'] = PG.base_parameter['T']
         
         h5.create_dataset('exit_status', shape = len(PG), dtype = float)
+        h5.create_dataset('sim_t', shape = len(PG), dtype = float)
         h5.create_dataset('t', data = FS.t)
 
         # Allocate arrays for frame attributes                                
@@ -145,6 +146,7 @@ class Saver(ABC):
                         h5['CS'][key][i, :] = arr
     
                 h5['exit_status'][i] = data['exit_status']
+                h5['sim_t'][i] = data['sim_t']
                                                                 
         return 
     
