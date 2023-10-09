@@ -489,7 +489,7 @@ class Worm:
         CS = {k: np.array([C[k] for C in Cs]) for k in CONTROL_KEYS}
         
         end_time = time.time()
-        sim_time = start_time - end_time 
+        sim_time = end_time - start_time  
 
         return FrameSequence(FS), SimpleNamespace(**CS), None, sim_time 
         
