@@ -434,7 +434,7 @@ def sweep_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        sweep_param.R = True
+        sweep_param.A = True
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 
