@@ -112,18 +112,17 @@ def default_sweep_parameter():
     parser.add_argument('--calc_R', action=BooleanOptionalAction, default = False,
         dest = 'R', help = 'If true, calculate final position of centroid')        
     parser.add_argument('--calc_U', action=BooleanOptionalAction, default = True,
-        help = 'If true, calculate swimming speed U')
+        dest = 'U', help = 'If true, calculate swimming speed U')
     parser.add_argument('--calc_E', action=BooleanOptionalAction, default = True,
-        help = 'If true, calculate L2 norm between real and preferred curvature')
+        dest = 'E', help = 'If true, calculate L2 norm between real and preferred curvature')
     parser.add_argument('--calc_A', action=BooleanOptionalAction, default = False,
-        help = 'If true, calculate real curvature amplitude')
+        dest = 'A', help = 'If true, calculate real curvature amplitude')
     parser.add_argument('--calc_f', action=BooleanOptionalAction, default = False,
-        help = 'If true, calculate real curvature amplitude')
+        dest = 'f', help = 'If true, calculate real curvature amplitude')
     parser.add_argument('--calc_lag', action=BooleanOptionalAction, default = False,
-        help = 'If true, calculate real curvature amplitude')
+        dest = 'lag', help = 'If true, calculate real curvature amplitude')
     parser.add_argument('--calc_lam', action=BooleanOptionalAction, default = False,
-        help = 'If true, calculate real curvature amplitude')
-
+        dest = 'lam', help = 'If true, calculate real curvature amplitude')
     return parser
 
 #===============================================================================
@@ -440,10 +439,10 @@ def sweep_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        sweep_param.calc_A = True
-        sweep_param.calc_f = True
-        sweep_param.calc_lag = True                
-        sweep_param.calc_lam = True                        
+        sweep_param.A = True
+        sweep_param.f = True
+        sweep_param.lag = True                
+        sweep_param.lam = True                        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 

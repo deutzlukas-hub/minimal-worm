@@ -42,15 +42,15 @@ def analyse(
     # Compute energies from last period
     T = h5_raw_data.attrs['T']
     
-    if what_to_calculate.calc_R:
+    if what_to_calculate.R:
         R = compute_final_centroid_destination(h5_raw_data)
         h5_analysis.create_dataset('R', data = R)            
     
-    if what_to_calculate.calc_R:                    
+    if what_to_calculate.U:                    
         U = compute_swimming_speed(h5_raw_data)
         h5_analysis.create_dataset('U', data = U)
     
-    if what_to_calculate.calc_E:    
+    if what_to_calculate.E:    
         E_dict = compute_energies(h5_raw_data) 
         grp = h5_analysis.create_group('energies')
         for k, E in E_dict.items():
@@ -64,22 +64,22 @@ def analyse(
         sig_norm = compute_average_sig_norm(h5_raw_data)
         h5_analysis.create_dataset('sig_norm', data = sig_norm)            
     
-    if what_to_calculate.calc_f:
+    if what_to_calculate.f:
         f_avg, f_std = compute_undulation_frequency(h5_raw_data, Delta_t = 1.0)                
         h5_analysis.create_dataset('f', data = f_avg)
         h5_analysis.create_dataset('f_std', data = f_std)
 
-    if what_to_calculate.calc_lag:
+    if what_to_calculate.lag:
         lag_avg, lag_std = compute_time_lag(h5_raw_data, Delta_t = 2.0)                
         h5_analysis.create_dataset('lag', data = lag_avg)
         h5_analysis.create_dataset('lag_std', data = lag_std)
     
-    if what_to_calculate.calc_A:    
+    if what_to_calculate.A:    
         A_avg, A_std = compute_curvature_amplitude(h5_raw_data)        
         h5_analysis.create_dataset('A', data = A_avg)
         h5_analysis.create_dataset('A_std', data = A_std)
                 
-    if what_to_calculate.calc_lam:
+    if what_to_calculate.lam:
         lam_avg, lam_std = compute_undulation_wavelength(h5_raw_data)                
         h5_analysis.create_dataset('lam', data = lam_avg)
         h5_analysis.create_dataset('lam_std', data = lam_std)
