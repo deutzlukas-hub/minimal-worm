@@ -109,15 +109,21 @@ def default_sweep_parameter():
         help = 'If true, save controls')
 
     # Analyse  
-    parser.add_argument('--R', action=BooleanOptionalAction, default = False,
+    parser.add_argument('--calc_R', action=BooleanOptionalAction, default = False,
         dest = 'R', help = 'If true, calculate final position of centroid')        
-    parser.add_argument('--U', action=BooleanOptionalAction, default = True,
+    parser.add_argument('--calc_U', action=BooleanOptionalAction, default = True,
         help = 'If true, calculate swimming speed U')
-    parser.add_argument('--E', action=BooleanOptionalAction, default = True,
+    parser.add_argument('--calc_E', action=BooleanOptionalAction, default = True,
         help = 'If true, calculate L2 norm between real and preferred curvature')
-    parser.add_argument('--A', action=BooleanOptionalAction, default = False,
-        dest = 'A', help = 'If true, calculate real curvature amplitude')
- 
+    parser.add_argument('--calc_A', action=BooleanOptionalAction, default = False,
+        help = 'If true, calculate real curvature amplitude')
+    parser.add_argument('--calc_f', action=BooleanOptionalAction, default = False,
+        help = 'If true, calculate real curvature amplitude')
+    parser.add_argument('--calc_lag', action=BooleanOptionalAction, default = False,
+        help = 'If true, calculate real curvature amplitude')
+    parser.add_argument('--calc_lam', action=BooleanOptionalAction, default = False,
+        help = 'If true, calculate real curvature amplitude')
+
     return parser
 
 #===============================================================================
@@ -434,7 +440,10 @@ def sweep_a_b(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        sweep_param.A = True
+        sweep_param.calc_A = True
+        sweep_param.calc_f = True
+        sweep_param.calc_lag = True                
+        sweep_param.calc_lam = True                        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 
