@@ -283,7 +283,7 @@ def compute_curvature_amplitude(h5: h5py):
 
     # Mean and std along body dimnension
     A_avg_arr = k_max_arr.mean(axis = 1)
-    A_std_arr = k_max_arr.mean(axis = 1)
+    A_std_arr = k_max_arr.std(axis = 1)
     
     A_avg_mat = A_avg_arr.reshape(h5.attrs['shape'])
     A_std_mat = A_std_arr.reshape(h5.attrs['shape'])
