@@ -134,7 +134,7 @@ def compute_undulation_frequency(h5: h5py, Delta_t = 1.0):
     '''
 
     # time
-    t_arr = h5['t']
+    t_arr = h5['t'][:]
     dt = t_arr[1] - t_arr[0]     
     # mesh
     N = h5['FS']['k'].shape[-1]
