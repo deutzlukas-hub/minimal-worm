@@ -291,6 +291,8 @@ def compute_curvature_amplitude(h5: h5py):
     return A_avg_mat, A_std_mat
 
 def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
+    
+    ds = s_arr[1] - s_arr[0]
         
     lam_mat = np.zeros((k_all_mat.shape[0], len(s_arr)))
     lam_avg_arr = np.zeros(k_all_mat.shape[0])
@@ -327,7 +329,7 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
         zc_raw_data = np.hstack((np.array(t_zc)[:, None], np.array(s_zc)[:, None]))
         zc_raw_list.append(zc_raw_data)
                 
-        dbscan = DBSCAN(eps=0.2, min_samples=3)
+        dbscan = DBSCAN(eps=0.1, min_samples=3)
         clusters = dbscan.fit_predict(zc_raw_data)
         cluster_labels = set(clusters)
 
@@ -382,9 +384,20 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
         # Fit bspline to zero-crossings 
         t_zc_arr = zc_aligned[:, 0]
         s_zc_arr = zc_aligned[:, 1]        
-            
-        tck  = splrep(s_zc_arr, t_zc_arr, k = 3, s=0.001)
+
+        # Thin duplicates 
+        s_zc_arr_thin = [s_zc_arr[0]]
+        t_zc_arr_thin = [t_zc_arr[0]]
+    
+        th = 0.5*ds
         
+        for s_zc, t_zc in zip(s_zc_arr, t_zc_arr):    
+            if np.abs(s_zc_arr_thin[-1] - s_zc) > th:     
+                s_zc_arr_thin.append(s_zc)
+                t_zc_arr_thin.append(t_zc)
+                        
+        tck  = splrep(s_zc_arr_thin, t_zc_arr_thin, k = 3, s=0.001)
+                    
         tck_list.append(tck)
                      
         lam_arr = 1.0 / splev(s_arr, tck, der=1)
@@ -394,6 +407,9 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
         anterior_lam_arr = lam_arr[s_arr <= 0.7]        
         lam_avg_arr[i] = anterior_lam_arr.mean()
         lam_std_arr[i] = anterior_lam_arr.std()
+
+
+
                                                                                                                                                            
     return tck_list, lam_mat, lam_avg_arr, lam_std_arr, zc_aligned_list, zc_raw_list #cut_off_idx_arr
 
