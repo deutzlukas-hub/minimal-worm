@@ -246,7 +246,7 @@ def compute_time_lag(h5: h5py, Delta_t = 1.0):
             lags_along_body_arr[j] = lags_refined[cc_refined.argmax()]
                 
         lag_avg_arr[i] = lags_along_body_arr.mean()  
-        lag_std_arr[i] = lags_along_body_arr.mean()  
+        lag_std_arr[i] = lags_along_body_arr.std()  
                                
     lag_avg_mat = lag_avg_arr.reshape(h5.attrs['shape'])
     lag_std_mat = lag_std_arr.reshape(h5.attrs['shape'])
@@ -407,8 +407,6 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
         anterior_lam_arr = lam_arr[s_arr <= 0.7]        
         lam_avg_arr[i] = anterior_lam_arr.mean()
         lam_std_arr[i] = anterior_lam_arr.std()
-
-
 
                                                                                                                                                            
     return tck_list, lam_mat, lam_avg_arr, lam_std_arr, zc_aligned_list, zc_raw_list #cut_off_idx_arr
