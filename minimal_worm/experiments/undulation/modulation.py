@@ -80,8 +80,8 @@ def sweep_f_c_lam(argv):
     b_min = 10**(-2.5)    
     
     log_f_over_f0_range = 2.5
-    a_f_arr = a_min*np.logspace(0, log_f_over_f0_range, int(1e2))
-    b_f_arr = b_min*np.logspace(0, log_f_over_f0_range, int(1e2))
+    a_f_arr = a_min*np.logspace(0, log_f_over_f0_range, int(2e1))
+    b_f_arr = b_min*np.logspace(0, log_f_over_f0_range, int(2e1))
         
     a_param = {'v_arr': a_f_arr.tolist(), 'round': 1}
     b_param = {'v_arr': b_f_arr.tolist(), 'round': 4}
