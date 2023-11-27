@@ -148,6 +148,7 @@ def sweep_f_c_lam(argv):
         sweep_param.lam = True                        
         sweep_param.f = True
         sweep_param.lag = True                
+        sweep_param.psi = True        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 

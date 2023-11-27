@@ -83,6 +83,11 @@ def analyse(
         lam_avg, lam_std = compute_undulation_wavelength(h5_raw_data)                
         h5_analysis.create_dataset('lam', data = lam_avg)
         h5_analysis.create_dataset('lam_std', data = lam_std)
+
+    if what_to_calculate.psi:
+        psi_avg, psi_std = compute_angle_attack(h5_raw_data)                
+        h5_analysis.create_dataset('psi', data = psi_avg)
+        h5_analysis.create_dataset('psi_std', data = psi_std)
                    
     print(f'Saved Analysis to {analysis_filepath}')    
     
@@ -449,7 +454,6 @@ def compute_undulation_wavelength(h5: h5py):
     
     return lam_avg_mat, lam_std_mat
 
-
 def compute_swimming_speed(h5: h5py):
     '''
     Computes swimming speed for every simulation in h5
@@ -464,7 +468,26 @@ def compute_swimming_speed(h5: h5py):
         U_arr[i] = PostProcessor.comp_mean_swimming_speed(r, t, T-1)[0]
         
     return U_arr.reshape(h5.attrs['shape'])
-                
+         
+def compute_angle_attack(h5: h5py):
+    '''
+    Computes swimming speed for every simulation in h5
+    '''
+    
+    T = h5.attrs['T']    
+    t = h5['t'][:]
+        
+    psi_arr = np.zeros(h5['FS']['r'].shape[0])    
+    psi_std_arr = np.zeros_like(psi_arr)
+        
+    for i, r in enumerate(h5['FS']['r']):
+
+        psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack(r, t, T-1)
+        psi_arr[i] = psi_avg
+        psi_std_arr[i] = psi_std
+    
+    return psi_arr.reshape(h5.attrs['shape']), psi_std_arr.reshape(h5.attrs['shape'])
+                         
 def compute_energies(h5: h5py): #Delta_t: float = 2.0):
     '''
     Computes energy cost  and mechanical work per undulation period 

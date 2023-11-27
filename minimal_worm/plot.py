@@ -41,62 +41,64 @@ def plot_scalar_field(
     ax: Axes,
     M: np.ndarray,
     eps: float = 1e-3,
-    v_lim: Tuple[float, float] = None,
-    title: List[str] = None,
-    T: float = None,
+    v_lim: Tuple[float, float] = None,            
+    title: List[str] = None,        
+    extent: Tuple[float, float, float, float] = None,   
+    head_tail_label: bool = False,    
+    T: float = False,
     cmap: str = None,
-    cbar_format: str = "%.3f",
+    **cbar_kwargs, 
 ):
+    #cbar_format: str = "%.3f",
     """
     Plots a colormap representation of the 2D scalar field M onto the given axes.
-    """
-    v_min = M.flatten().min()
-    v_max = M.flatten().max()
-
+    """    
+    v_min, v_max = M.min(), M.max()
+        
+    if v_lim is not None:
+        v_min = v_lim[0]
+        v_max = v_lim[1]
+            
     if np.abs(v_min) < eps:
         np.sign(v_min) * eps
     if np.abs(v_max) < eps:
         np.sign(v_max) * eps
 
-    if v_lim is not None:
-        if v_min < v_lim[0]:
-            v_min = v_lim[0]
-        if v_max > v_lim[1]:
-            v_max = v_max[0]
-
-    m = ax.matshow(
+    m = ax.imshow(
         M.T,
-        cmap=cmap,
-        clim=(v_min, v_max),
-        norm=MidpointNormalize(midpoint=0, vmin=v_min, vmax=v_max),
+        cmap= cmap,
         aspect="auto",
-        origin="upper",
-    )
+        origin="lower",
+        vmin = v_min,
+        vmax= v_max,                
+        extent=extent
+    )    
 
     if title is not None:
         ax.set_title(title)
 
-    ax.text(
-        -0.02,
-        1,
-        "H",
-        transform=ax.transAxes,
-        verticalalignment="top",
-        horizontalalignment="right",
-        fontweight="bold",
-    )
-    ax.text(
-        -0.02,
-        0,
-        "T",
-        transform=ax.transAxes,
-        verticalalignment="bottom",
-        horizontalalignment="right",
-        fontweight="bold",
-    )
+    if head_tail_label:
 
-    if T is not None:
+        ax.text(
+            -0.2,
+            -0.2,
+            "H",
+            transform=ax.transAxes,
+            verticalalignment="top",
+            horizontalalignment="right",
+            fontweight="bold",
+        )
+        ax.text(
+            -0.2,
+            1.2,
+            "T",
+            transform=ax.transAxes,
+            verticalalignment="bottom",
+            horizontalalignment="right",
+            fontweight="bold",
+        )
 
+    if T:
         ax.text(
             0,
             -0.01,
@@ -109,19 +111,22 @@ def plot_scalar_field(
         ax.text(
             1,
             -0.01,
-            f"{T:.2f}s",
+            f"{T:.2f}",
             transform=ax.transAxes,
             verticalalignment="top",
             horizontalalignment="right",
             fontweight="bold",
         )
 
-    plt.gcf().colorbar(m, ax=ax, format=cbar_format)
+    cbar = plt.gcf().colorbar(m, ax=ax, **cbar_kwargs)
 
-    ax.get_xaxis().set_ticks([])
-    ax.get_yaxis().set_ticks([])
+    #format=cbar_format
 
-    return
+    if not extent:
+        ax.get_yaxis().set_ticks([0.0, 0.5, 1.0])
+        ax.get_xaxis().set_ticks([])
+
+    return cbar, m 
 
 
 def plot_multiple_scalar_fields(
