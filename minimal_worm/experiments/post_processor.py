@@ -213,13 +213,14 @@ class PostProcessor(object):
         # tangent and propulsion direction along the body
         phi = np.arccos(np.sum(t * e_p[None, :, None], axis = 1))
         
+        # Time avg
+        avg_phi = phi.mean(np.abs(phi), axis = 0)
+        
         # Average along body 
-        avg_phi = np.mean(np.abs(phi), axis = 1)
-            
-        # Time average
-        time_avg_phi = np.mean(avg_phi)
-            
-        return phi, avg_phi, time_avg_phi
+        avg_phi = np.mean(avg_phi, axis = 1)
+        std_phi = np.std(avg_phi, axis = 1)
+                                  
+        return avg_phi, std_phi, phi
         
     @staticmethod
     def centreline_pca(r: np.ndarray):
