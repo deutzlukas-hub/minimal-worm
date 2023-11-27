@@ -216,8 +216,8 @@ class PostProcessor(object):
         # Time avg
         avg_phi = np.abs(phi).mean(axis = 0)
         # Average along body 
-        avg_phi = np.mean(avg_phi, axis = 1)
-        std_phi = np.std(avg_phi, axis = 1)
+        avg_phi = np.mean(avg_phi)
+        std_phi = np.std(avg_phi)
                                   
         return avg_phi, std_phi, phi
         
