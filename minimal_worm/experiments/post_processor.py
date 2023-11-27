@@ -207,11 +207,11 @@ class PostProcessor(object):
         # from tale to head in the general propulsion direction            
         r_s = - np.diff(r, axis = 2)
         # Normalize
-        r_s = r_s / np.linalg.norm(r_s, axis = 1)
+        r_s = r_s / np.linalg.norm(r_s, axis = 1)[:, None, :]
         
         # Angle of attack is the defined as the dot product of 
         # tangent and propulsion direction along the body
-        phi = np.arccos(np.sum(t * e_p[None, :, None], axis = 1))
+        phi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
         
         # Time avg
         avg_phi = phi.mean(np.abs(phi), axis = 0)
