@@ -214,8 +214,7 @@ class PostProcessor(object):
         phi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
         
         # Time avg
-        avg_phi = phi.mean(np.abs(phi), axis = 0)
-        
+        avg_phi = np.abs(phi).mean(axis = 0)
         # Average along body 
         avg_phi = np.mean(avg_phi, axis = 1)
         std_phi = np.std(avg_phi, axis = 1)
