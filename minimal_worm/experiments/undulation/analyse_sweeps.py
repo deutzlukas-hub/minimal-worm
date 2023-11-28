@@ -507,6 +507,8 @@ def compute_angle_attack(h5: h5py):
     psi_arr = np.zeros((h5['FS']['r'].shape[0], len(psi_avg)))    
     psi_std_arr = np.zeros_like(psi_arr)
         
+    print(f'Shape={psi_arr.shape}')
+        
     for i, r in enumerate(h5['FS']['r']):
 
         avg_psi, std_psi, _ = PostProcessor.comp_angle_of_attack(r, t, T-1)
@@ -514,7 +516,10 @@ def compute_angle_attack(h5: h5py):
         psi_arr[i, :] = avg_psi
         psi_std_arr[i, :] = std_psi
     
-    return psi_arr.reshape(h5.attrs['shape'] + (-1,)), psi_std_arr.reshape(h5.attrs['shape'] + (-1,))
+    
+    print(f'Desired shape={h5.attrs["shape"] + (len(psi_arr),)}')
+            
+    return psi_arr.reshape(h5.attrs['shape'] + (len(psi_arr),)), psi_std_arr.reshape(h5.attrs['shape'] + (len(psi_arr),))
                          
 def compute_energies(h5: h5py): #Delta_t: float = 2.0):
     '''
