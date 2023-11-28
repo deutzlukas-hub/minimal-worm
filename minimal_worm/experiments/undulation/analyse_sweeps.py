@@ -517,6 +517,7 @@ def compute_angle_attack(h5: h5py):
         psi_std_arr[i, :] = std_psi
     
     
+    print(f'PG shape={h5.attrs["shape"]}')
     print(f'Desired shape={h5.attrs["shape"] + (len(psi_arr),)}')
             
     return psi_arr.reshape(h5.attrs['shape'] + (len(psi_arr),)), psi_std_arr.reshape(h5.attrs['shape'] + (len(psi_arr),))
