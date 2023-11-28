@@ -229,7 +229,7 @@ class PostProcessor(object):
         r = r[idx_arr,:]
         t = t[idx_arr]
 
-        # Propulsion direcxtion
+        # Propulsion direction
         r_com  = np.mean(r, axis = 2)        
         e_p = PostProcessor.comp_propulsion_direction(r_com)
                     
@@ -248,7 +248,25 @@ class PostProcessor(object):
         std_psi = np.abs(psi).std(axis = 1)
                                           
         return avg_psi, std_psi, psi
+
+    @staticmethod
+    def comp_propulsive_force(f_F: np.ndarray, r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+
+        # crop initial transient
+        idx_arr = t >= Delta_t
+        r = r[idx_arr,:]
+        t = t[idx_arr]
+
+        # Swimming direction
+        r_com  = np.mean(r, axis = 2)        
+        e_p = PostProcessor.comp_propulsion_direction(r_com)
+
+        fp = np.arccos(np.sum(f_F * e_p[None, :, None], axis = 1))
+
+        avg_fp = f_F.mean(axis = 1)
         
+        return avg_fp, fp 
+                    
     @staticmethod
     def centreline_pca(r: np.ndarray):
         '''

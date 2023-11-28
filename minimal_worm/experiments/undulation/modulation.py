@@ -49,6 +49,8 @@ def sweep_f_c_lam(argv):
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]    
     CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
+    FK.append('f_F')
+
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
@@ -149,7 +151,8 @@ def sweep_f_c_lam(argv):
         sweep_param.f = True
         sweep_param.lag = True
         sweep_param.psi = True
-        sweep_param.Y = True      
+        sweep_param.Y = False
+        sweep_param.fp = True        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
 

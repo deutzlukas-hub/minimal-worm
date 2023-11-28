@@ -93,6 +93,10 @@ def analyse(
         Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
         h5_analysis.create_dataset('Y_avg', data = Y_avg)
         h5_analysis.create_dataset('Y_max', data = Y_max)
+
+    if what_to_calculate.fp:
+        fp_avg = compute_propulsive_force(h5_raw_data)
+        h5_analysis.create_dataset('fp_avg', data = fp_avg)
                    
     print(f'Saved Analysis to {analysis_filepath}')    
     
@@ -517,7 +521,22 @@ def compute_angle_attack(h5: h5py):
     shape = tuple(h5.attrs["shape"]) + (len(psi_avg),)
                     
     return psi_arr.reshape(shape), psi_std_arr.reshape(shape)
-                         
+
+def compute_propulsive_force(h5: h5py):
+
+    T = h5.attrs['T']    
+    t = h5['t'][:]
+    
+    fp_arr = np.zeros((h5['FS']['r'].shape[0]))
+                
+    for i, (f_F, r) in enumerate(zip(h5['FS']['f_F'], h5['FS']['r'])):
+
+        fp_avg = PostProcessor.comp_propulsive_force(f_F, r, t, T-1)[0]
+
+        fp_arr[i] = fp_avg
+                        
+    return fp_arr.reshape(h5.attrs["shape"])
+                     
 def compute_energies(h5: h5py): #Delta_t: float = 2.0):
     '''
     Computes energy cost  and mechanical work per undulation period 
