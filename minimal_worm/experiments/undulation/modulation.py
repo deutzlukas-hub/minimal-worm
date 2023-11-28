@@ -144,11 +144,11 @@ def sweep_f_c_lam(argv):
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
 
     if sweep_param.analyse:
-        sweep_param.A = False
-        sweep_param.lam = False
-        sweep_param.f = False
-        sweep_param.lag = False                
-        sweep_param.psi = False
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.f = True
+        sweep_param.lag = True                
+        sweep_param.psi = True
         sweep_param.Y = True        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
