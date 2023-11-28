@@ -88,6 +88,11 @@ def analyse(
         psi_avg, psi_std = compute_angle_attack(h5_raw_data)                
         h5_analysis.create_dataset('psi', data = psi_avg)
         h5_analysis.create_dataset('psi_std', data = psi_std)
+
+    if what_to_calculate.Y:
+        Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
+        h5_analysis.create_dataset('Y_avg', data = Y_avg)
+        h5_analysis.create_dataset('Y_max', data = Y_max)
                    
     print(f'Saved Analysis to {analysis_filepath}')    
     
@@ -468,6 +473,26 @@ def compute_swimming_speed(h5: h5py):
         U_arr[i] = PostProcessor.comp_mean_swimming_speed(r, t, T-1)[0]
         
     return U_arr.reshape(h5.attrs['shape'])
+
+def compute_wobbling_speed(h5: h5py):
+    '''    
+    :param h5:
+    '''
+
+    T = h5.attrs['T']    
+    t = h5['t'][:]
+
+    Y_avg_arr = np.zeros(h5['FS']['r'].shape[0])    
+    Y_max_arr = np.zeros(h5['FS']['r'].shape[0])    
+        
+    for i, r in enumerate(h5['FS']['r']):
+
+        Y_avg, Y_max, _ = PostProcessor.comp_amplitude_wobbling_speed(r, t, T-1)
+
+        Y_avg_arr[i] = Y_avg 
+        Y_max_arr[i] = Y_max
+        
+    return Y_avg_arr.reshape(h5.attrs['shape']), Y_max_arr.reshape(h5.attrs['shape'])
          
 def compute_angle_attack(h5: h5py):
     '''

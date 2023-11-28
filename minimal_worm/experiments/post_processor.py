@@ -186,6 +186,36 @@ class PostProcessor(object):
         return U 
     
     @staticmethod
+    def comp_amplitude_wobbling_speed(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+        '''
+        Computes average amplitude of the wobbling speed. The wobbling speed is orthogonal 
+        to the propulsion direction.
+        
+        :param r (n x 3 x N): centreline coordinates
+        :param t (n): time stamps 
+        :param Delta_t: crop time points t < Delta_t        
+        '''        
+        # crop initial transient
+        idx_arr = t >= Delta_t
+        dt = t[1]-t[0]
+        r = r[idx_arr,:]
+        t = t[idx_arr]
+
+        r_com = r.mean(axis = 2)
+        _, w, _ = PostProcessor.com_pca(r_com)
+                
+        # Approx wobbling direction as second principal axis
+        e_w = w[:, 1]
+                                                                                
+        v_com_vec = np.gradient(r_com, dt, axis=0, edge_order=1)    
+        
+        # Project velocity on swimming direction
+        Y = np.sum(v_com_vec * e_w, axis = 1)                        
+        # Take average
+        
+        return Y.mean(), np.abs(Y).max(), t 
+            
+    @staticmethod
     def comp_angle_of_attack(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
         '''
         Compute angle of attack
