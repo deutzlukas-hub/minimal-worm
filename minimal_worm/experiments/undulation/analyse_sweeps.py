@@ -515,12 +515,10 @@ def compute_angle_attack(h5: h5py):
 
         psi_arr[i, :] = psi_avg
         psi_std_arr[i, :] = psi_std
-        
-    print(f'PG shape type = {type(h5.attrs["shape"])}')
-    print(f'PG shape={h5.attrs["shape"]}')
-    print(f'Desired shape={h5.attrs["shape"] + (len(psi_avg),)}')
-            
-    return psi_arr.reshape(h5.attrs['shape'] + (len(psi_avg),)), psi_std_arr.reshape(h5.attrs['shape'] + (len(psi_avg),))
+    
+    shape = tuple(h5.attrs["shape"]) + (len(psi_avg),)
+                    
+    return psi_arr.reshape(shape), psi_std_arr.reshape(shape)
                          
 def compute_energies(h5: h5py): #Delta_t: float = 2.0):
     '''
