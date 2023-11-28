@@ -241,15 +241,13 @@ class PostProcessor(object):
         
         # Angle of attack is the defined as the dot product of 
         # tangent and propulsion direction along the body
-        phi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
+        psi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
         
-        # Time avg
-        avg_phi = np.abs(phi).mean(axis = 0)
-        # Average along body 
-        avg_phi = np.mean(avg_phi)
-        std_phi = np.std(avg_phi)
-                                  
-        return avg_phi, std_phi, phi
+        # Body average
+        avg_psi = np.abs(psi).mean(axis = 1)
+        std_psi = np.abs(psi).std(axis = 1)
+                                          
+        return avg_psi, std_psi, psi
         
     @staticmethod
     def centreline_pca(r: np.ndarray):
