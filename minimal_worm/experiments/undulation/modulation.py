@@ -280,7 +280,7 @@ if __name__ == '__main__':
     
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['sweep_c_lam', 'f_c_lam'], help='Sweep to run')
+        choices = ['c_lam', 'f_c_lam'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
