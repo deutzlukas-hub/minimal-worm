@@ -50,6 +50,8 @@ def sweep_c_lam(argv):
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]    
     CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
+    print(f'FK={FK}')
+
     # Parse model parameter
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
