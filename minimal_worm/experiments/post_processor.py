@@ -108,7 +108,29 @@ class PostProcessor(object):
         w = w[:, idx_arr]
 
         return lam, w, r_com_avg
+    
+    @staticmethod
+    def comp_swimming_direction(r_com: np.ndarray):
+        '''
+        Computes swimming direction
+        
+        :param r_com (3 x n): centre of mass coordinates                
+        '''
+        
+        _, w, _ = PostProcessor.comp_pca(r_com)
+        eS = w[:, 0] 
+        eW = w[:, 1]
+                              
+        # Make sure that the principal axis points 
+        # in positive swimming direction         
+        v = r_com[-1, :] - r_com[0, :]
+        v = v / np.linalg.norm(v)        
+        
+        if np.dot(eS, v) < 0:
+            eS= -eS
 
+        return eS, eW
+        
     @staticmethod
     def comp_propulsion_direction(r_com: np.ndarray):
         '''
