@@ -36,7 +36,6 @@ def plot_wobbling():
         'lam_min=0.5_lam_max=2.0_lam_step=0.2_'
         'N=250_dt=0.01_T=5.0_pic_on=False.h5'
     )
-
         
     h5, PG = load_data(h5_fn)
     
@@ -139,7 +138,7 @@ def plot_propulsive_force():
     return
 
 
-def plot_swimming_speed():
+def plot_centreline_speed():
         
     h5_fn = ('raw_data_a=1.0_b=0.0032_'
         'c_min=0.4_c_max=1.6_c_step=0.2_'
@@ -152,28 +151,26 @@ def plot_swimming_speed():
     lam0_arr = PG.v_from_key('lam')
     c0_arr = PG.v_from_key('c')
     
-    r_arr = h5['FS']['r'][:]
-    f_F_arr = h5['FS']['f_F'][:]
+    u_arr = h5['FS']['r_t'][:]
+    u_arr = np.sqrt(np.sum(u_arr**2, axis=2))
+        
     t = h5['t'][:]
     T = h5.attrs['T']
-                
-    plot_dir = fig_dir / 'modulation' / 'wobbling'    
+           
+    idx_arr = t>= T-1
+           
+    u_arr = u_arr[:, idx_arr, :]
+    t = t[idx_arr]
+                                                                         
+    plot_dir = fig_dir / 'modulation' / 'centreline_velocity'    
     plot_dir.mkdir(exist_ok = True, parents = True)
                
-    fp_arr = np.zeros(r_arr.shape[0])
-
-    plot_dir = fig_dir / 'modulation' / 'propulsion_force'    
-    plot_dir.mkdir(exist_ok = True, parents = True)
+    u_max_arr = np.zeros(u_arr.shape[0])
                
-    for k, (r, f_F) in enumerate(zip(r_arr, f_F_arr)):
+    for k, u in enumerate(u_arr):
         
-        print(f'plot={k}')
-        
-        i,j = np.unravel_index(k, PG.shape)
-        lam0 = lam0_arr[j]
-        c0 = c0_arr[i]
-                 
-        avg_fp, _, t_crop = PostProcessor.comp_propulsive_force(f_F, r, t, Delta_t = T-1)
+        u_max_arr[k] = np.max(u)
+                                 
         # plt.plot(t_crop, avg_fp)
         # plt.xlabel(r'$t$')
         # plt.ylabel(r'$f_{\mathrm{p}}$')
@@ -181,24 +178,20 @@ def plot_swimming_speed():
         #
         # plt.savefig(plot_dir / f'{str(k).zfill(3)}.png')                
         # plt.close(plt.gcf())
-          
-        fp_arr[k] = avg_fp.mean()
-                            
-    fp_arr = fp_arr.reshape(PG.shape)
+                              
+    u_max_arr = u_max_arr.reshape(PG.shape)
     
-    CS = plt.contourf(lam0_arr, c0_arr, fp_arr, cmap = 'inferno')    
-    plt.contour(lam0_arr, c0_arr, fp_arr, c='k')
+    CS = plt.contourf(lam0_arr, c0_arr, u_max_arr, cmap = 'inferno')    
+    plt.contour(lam0_arr, c0_arr, u_max_arr, c='k')
     plt.colorbar(CS)    
     plt.show()
                          
     return
 
-
-
 if __name__ == '__main__':
     
     #plot_wobbling() 
-    plot_propulsive_force()    
-    
+    #plot_propulsive_force()    
+    plot_centreline_speed()
     
 
