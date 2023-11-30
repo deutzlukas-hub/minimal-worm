@@ -26,12 +26,131 @@ from minimal_worm.experiments.undulation.thesis import default_sweep_parameter
 
 ureg = pint.UnitRegistry()
 
+
+def sweep_A_lam(argv):
+    '''
+    Parameter sweep over c and lam for fixed a and b
+    '''    
+
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+
+    sweep_parser.add_argument('--A', 
+        type=float, nargs=3, default = [1.0, 12.0, 1.0])    
+    sweep_parser.add_argument('--lam', 
+        type=float, nargs=3, default = [0.5, 2.0, 0.1])    
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+    
+    # The argumentparser for the sweep parameter has a boolean argument 
+    # for ever frame key and control key which can be set to true
+    # if it should be saved 
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]    
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    print(f'FK={FK}')
+
+    # Parse model parameter
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.T = 5.0
+    model_param.use_c = False
+    
+    # Print all model parameter whose value has been
+    # set via the command line
+    cml_args = {k: v for k, v in vars(model_param).items() 
+        if v != model_parser.get_default(k)}
+    
+    if len(cml_args) != 0: 
+        print(cml_args)
+    
+    #===============================================================================
+    # Init ParameterGrid 
+    #===============================================================================
+        
+    # Operating point
+    a, b = 1.0, np.round(10**(-2.5), 4) 
+    
+    model_param.a = a
+    model_param.b = b
+
+    # Shape-factor and curvature amplitude     
+    A_min, A_max = sweep_param.c[0], sweep_param.c[1]
+    A_step = sweep_param.c[2]
+
+    lam_min, lam_max = sweep_param.lam[0], sweep_param.lam[1]
+    lam_step = sweep_param.lam[2]
+
+    A_param = {'v_min': A_min, 'v_max': A_max + 0.1*A_step, 
+        'N': None, 'step': A_step, 'round': 2}    
+
+    lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1*lam_step, 
+        'N': None, 'step': lam_step, 'round': 2}
+    
+    grid_param = {
+        'A': A_param, 
+        'lam': lam_param}
+    
+    sweep_parser = default_sweep_parameter()    
+        
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+        
+    # Experiments are run using the Sweeper class for parallelization 
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+        
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'a={a}_b={b}_'                
+        f'A_min={A_min}_A_max={A_max}_A_step={A_step}_'
+        f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
+        f'N={model_param.N}_dt={model_param.dt}_'        
+        f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.f = True
+        sweep_param.lag = True
+        sweep_param.psi = True
+        sweep_param.Y = True
+        sweep_param.fp = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)    
+    
+    return
+    
 def sweep_c_lam(argv):
     '''
-    Parameter sweep over time scale ratios a and b
-
-    Show that swimming speed and energy are fully captured 
-    by the system input time scale ratios.          
+    Parameter sweep over c and lam for fixed a and b
     '''    
 
     # Parse sweep parameter
@@ -282,7 +401,7 @@ if __name__ == '__main__':
     
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['c_lam', 'f_c_lam'], help='Sweep to run')
+        choices = ['c_lam', 'A_lam', 'f_c_lam'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
