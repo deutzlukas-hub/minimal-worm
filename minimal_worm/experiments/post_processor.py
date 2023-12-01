@@ -289,8 +289,8 @@ class PostProcessor(object):
         r_com  = np.mean(r, axis = 2)        
         e_S, e_W = PostProcessor.comp_propulsion_direction(r_com)
                                
-        r_com_S = r_com[:, :] * e_S[None, :]
-        r_com_W = r_com[:, :] * e_W[None, :]
+        r_com_S = np.sum(r_com[:, :] * e_S[None, :], axis = 1)
+        r_com_W = np.sum(r_com[:, :] * e_W[None, :], axis = 1)
         
         m = np.gradient(r_com_W, r_com_S)                        
         psi = np.arctan(m)
