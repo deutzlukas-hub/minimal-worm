@@ -295,8 +295,8 @@ class PostProcessor(object):
         m = np.gradient(r_com_W, r_com_S)                        
         psi = np.arctan(m)
 
-        avg_psi = np.trapz(np.abs(psi), dx=ds, axis = 1)
-        std_psi = np.trapz(np.abs(psi-avg_psi), dx=ds, axis = 1)
+        avg_psi = trapz(np.abs(psi), dx=ds, axis = 1)
+        std_psi = trapz(np.abs(psi-avg_psi), dx=ds, axis = 1)
 
         avg_psi = np.mean(avg_psi)
         std_psi = np.mean(std_psi)
