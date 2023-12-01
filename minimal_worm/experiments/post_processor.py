@@ -296,7 +296,7 @@ class PostProcessor(object):
         
         for i, (r_S_t, r_W_t) in enumerate(zip(r_S, r_W)):
         
-            m[i] = np.gradient(r_W_t, r_S_t, axis = 1)                                            
+            m[i] = np.gradient(r_W_t, r_S_t)                                            
 
         psi = np.arctan(m)
 
