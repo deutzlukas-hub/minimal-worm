@@ -292,7 +292,12 @@ class PostProcessor(object):
         r_S = np.sum(r * e_S[None, :, None], axis = 1)
         r_W = np.sum(r * e_W[None, :, None], axis = 1)
         
-        m = np.gradient(r_W, r_S, axis = 1)                        
+        m = np.zeros(r_S.shape[0])
+        
+        for i, (r_S_t, r_W_t) in enumerate(zip(r_S, r_W)):
+        
+            m[i] = np.gradient(r_W_t, r_S_t, axis = 1)                                            
+
         psi = np.arctan(m)
 
         avg_psi = trapz(np.abs(psi), dx=ds, axis = 1)
