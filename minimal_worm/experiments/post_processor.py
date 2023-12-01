@@ -301,7 +301,7 @@ class PostProcessor(object):
         psi = np.arctan(m)
 
         avg_psi = trapz(np.abs(psi), dx=ds, axis = 1)
-        std_psi = trapz(np.abs(psi-avg_psi), dx=ds, axis = 1)
+        std_psi = np.sqrt(trapz((psi-avg_psi[:, None])**2, dx=ds, axis = 1))
 
         avg_psi = np.mean(avg_psi)
         std_psi = np.mean(std_psi)
