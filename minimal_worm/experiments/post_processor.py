@@ -303,8 +303,8 @@ class PostProcessor(object):
         avg_psi = trapz(np.abs(psi), dx=ds, axis = 1)
         std_psi = np.sqrt(trapz((psi-avg_psi[:, None])**2, dx=ds, axis = 1))
 
-        avg_psi = np.mean(avg_psi)
-        std_psi = np.mean(std_psi)
+        # avg_psi = np.mean(avg_psi)
+        # std_psi = np.mean(std_psi)
         
         return avg_psi, std_psi, psi
 
