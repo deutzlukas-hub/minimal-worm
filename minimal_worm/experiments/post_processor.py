@@ -117,10 +117,10 @@ class PostProcessor(object):
         :param r_com (3 x n): centre of mass coordinates                
         '''
         
-        _, w, _ = PostProcessor.comp_pca(r_com)
+        _, w, _ = PostProcessor.com_pca(r_com)
         eS = w[:, 0] 
         eW = w[:, 1]
-                              
+                                              
         # Make sure that the principal axis points 
         # in positive swimming direction         
         v = r_com[-1, :] - r_com[0, :]
@@ -128,6 +128,8 @@ class PostProcessor(object):
         
         if np.dot(eS, v) < 0:
             eS= -eS
+
+        assert np.isclose(np.dot(eS, eW), 0)
 
         return eS, eW
         
@@ -143,17 +145,18 @@ class PostProcessor(object):
         _, w, _ = PostProcessor.com_pca(r_com)
                 
         # Approx swimming direction as first principal axis
-        e_p = w[:, 0]
-                
+        e_S = w[:, 0]
+        e_W = w[:, 1]
+                        
         # Make sure that the principal axis points 
         # in positive swimming direction         
         v = r_com[-1, :] - r_com[0, :]
         v = v / np.linalg.norm(v)        
         
-        if np.dot(e_p, v) < 0:
-            e_p = -e_p
+        if np.dot(e_S, v) < 0:
+            e_S = -e_S
                 
-        return e_p
+        return e_S, e_W
                 
     @staticmethod
     def comp_mean_swimming_speed(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
@@ -175,7 +178,7 @@ class PostProcessor(object):
                 
         r_com = r.mean(axis = 2)
         
-        e_p = PostProcessor.comp_propulsion_direction(r_com)
+        e_p, _ = PostProcessor.comp_propulsion_direction(r_com)
                                              
         v_com_vec = np.gradient(r_com, dt, axis=0, edge_order=1)    
         
@@ -253,7 +256,7 @@ class PostProcessor(object):
 
         # Propulsion direction
         r_com  = np.mean(r, axis = 2)        
-        e_p = PostProcessor.comp_propulsion_direction(r_com)
+        e_p, _ = PostProcessor.comp_propulsion_direction(r_com)
                     
         # Compute tangent: Negative sign makes tangent point 
         # from tale to head in the general propulsion direction            
@@ -272,22 +275,54 @@ class PostProcessor(object):
         return avg_psi, std_psi, psi
 
     @staticmethod
+    def comp_angle_of_attack_alternative(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+    
+        # crop initial transient
+        idx_arr = t >= Delta_t
+        r = r[idx_arr,:]
+        t = t[idx_arr]
+
+        N = r.shape[-1]
+        ds = 1.0/(1-N)
+
+        # Propulsion direction
+        r_com  = np.mean(r, axis = 2)        
+        e_S, e_W = PostProcessor.comp_propulsion_direction(r_com)
+                               
+        r_com_S = r_com[:, :] * e_S[None, :]
+        r_com_W = r_com[:, :] * e_W[None, :]
+        
+        m = np.gradient(r_com_W, r_com_S)                        
+        psi = np.arctan(m)
+
+        avg_psi = np.trapz(np.abs(psi), dx=ds, axis = 1)
+        std_psi = np.trapz(np.abs(psi-avg_psi), dx=ds, axis = 1)
+
+        avg_psi = np.mean(avg_psi)
+        std_psi = np.mean(std_psi)
+        
+        return avg_psi, std_psi, psi
+
+    @staticmethod
     def comp_propulsive_force(f_F: np.ndarray, r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
 
         # crop initial transient
         idx_arr = t >= Delta_t
         r = r[idx_arr,:]
         t = t[idx_arr]
+        f_F = f_F[idx_arr]
 
+        N = r.shape[-1]
+        ds = 1/(N-1)
+    
         # Swimming direction
         r_com  = np.mean(r, axis = 2)        
-        e_p = PostProcessor.comp_propulsion_direction(r_com)
+        e_p, _ = PostProcessor.comp_propulsion_direction(r_com)
 
-        fp = np.arccos(np.sum(f_F * e_p[None, :, None], axis = 1))
+        fp = np.sum(f_F * e_p[None, :, None], axis = 1)
+        Fp = np.trapz(fp, axis = 1, dx = ds)
 
-        avg_fp = f_F.mean(axis = 1)
-        
-        return avg_fp, fp 
+        return Fp, fp, t
                     
     @staticmethod
     def centreline_pca(r: np.ndarray):
