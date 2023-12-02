@@ -556,8 +556,8 @@ def compute_angle_attack(h5: h5py):
 
         psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack(r, t, T-1)
 
-        psi_arr[i, :] = psi_avg
-        psi_std_arr[i, :] = psi_std
+        psi_arr[i] = psi_avg
+        psi_std_arr[i] = psi_std
         
                     
     return psi_arr.reshape(h5.attrs["shape"]), psi_std_arr.reshape(h5.attrs["shape"]) 
