@@ -82,6 +82,39 @@ def plot_wobbling():
             
     return
 
+def plot_instantenous_body_orientation():
+    
+    h5_fn = ('raw_data_a=1.0_b=0.0032_'
+        'c_min=0.4_c_max=1.6_c_step=0.2_'
+        'lam_min=0.5_lam_max=2.0_lam_step=0.2_'
+        'N=250_dt=0.01_T=5.0_pic_on=False.h5'
+    )
+
+    h5, PG = load_data(h5_fn)
+        
+    T = h5.attrs['T']
+    t = h5['t'][:]
+    r_arr = h5['FS']['r']
+
+    lam0_arr = PG.v_from_key('lam')
+    c0_arr = PG.v_from_key('lam')
+    
+    for k, r in enumerate(r_arr):
+                
+        r_com = r.mean(axis=2)
+        
+        w1, w2 = PostProcessor.comp_instantenous_body_orientation(r, t, T-1)
+
+        plt.plot(r_com[:, 1], r_com[:, 2],'-')
+        plt.plot(r_com[::10, 1], r_com[::10, 2],'o')
+        
+        plt.quiver(r_com[::10, 1], r_com[::10, 2], w1[::10, 1], w1[::10, 2], angles='xy', scale_units='xy', scale=1, color=['r', 'g', 'b'])
+        plt.quiver(r_com[::10, 1], r_com[::10, 2], w2[::10, 1], w2[::10, 2], angles='xy', scale_units='xy', scale=1, color=['r', 'g', 'b'])
+
+        plt.show()
+
+    return
+
 def plot_propulsive_force():
         
     h5_fn = ('raw_data_a=1.0_b=0.0032_'
@@ -217,6 +250,7 @@ if __name__ == '__main__':
     
     #plot_wobbling() 
     #plot_propulsive_force()    
-    plot_centreline_speed()
+    #plot_centreline_speed()
+    plot_instantenous_body_orientation()
     
 
