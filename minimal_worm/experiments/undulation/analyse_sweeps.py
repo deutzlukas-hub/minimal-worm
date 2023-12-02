@@ -515,7 +515,7 @@ def compute_wobbling_distance(h5: h5py):
 
     for i, r in enumerate(h5['FS']['r']):
 
-        SW_arr[i] = PostProcessor.comp_wobbling_distance(r, t, Delta_T: T-1)
+        SW_arr[i] = PostProcessor.comp_wobbling_distance(r, t, T-1)
         
     return SW_arr.reshape(h5.attrs['shape'])
     
