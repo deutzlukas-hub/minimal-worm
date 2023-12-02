@@ -151,26 +151,35 @@ def plot_centreline_speed():
     lam0_arr = PG.v_from_key('lam')
     c0_arr = PG.v_from_key('c')
     
+    
+    r_arr = h5['FS']['r'][:]
     u_arr = h5['FS']['r_t'][:]
-    u_arr = np.sqrt(np.sum(u_arr**2, axis=2))
-        
+
     t = h5['t'][:]
     T = h5.attrs['T']
            
-    idx_arr = t>= T-1
-           
-    u_arr = u_arr[:, idx_arr, :]
+    idx_arr = t>= T-1           
+    u_arr = u_arr[:, idx_arr, :, :]
     t = t[idx_arr]
-                                                                         
-    plot_dir = fig_dir / 'modulation' / 'centreline_velocity'    
-    plot_dir.mkdir(exist_ok = True, parents = True)
-               
+                                                                                                           
     u_max_arr = np.zeros(u_arr.shape[0])
-               
-    for k, u in enumerate(u_arr):
-        
-        u_max_arr[k] = np.max(u)
-                                 
+    uS_max_arr = np.zeros(u_arr.shape[0])
+    uW_max_arr = np.zeros(u_arr.shape[0])
+                          
+    for k, (u, r) in enumerate(zip(u_arr, r_arr)):
+    
+        r_com = r.mean(axis=-1)
+        u_abs = np.sqrt(np.sum(u_arr**2, axis=1))
+                    
+        eS, eW = PostProcessor.comp_swimming_direction(r_com)
+        uS = np.sum(u_arr * eS[None, :, None], axis = 1)   
+        uW = np.sum(u_arr * eW[:, None, :, None], axis = 1)   
+            
+        u_max_arr[k] = np.max(u_abs, axis=1).mean()
+        uS_max_arr[k] = np.max(uS, axis = 1).mean()
+        uW_max_arr[k] = np.max(uW, axis = 1).mean()
+
+                                    
         # plt.plot(t_crop, avg_fp)
         # plt.xlabel(r'$t$')
         # plt.ylabel(r'$f_{\mathrm{p}}$')
@@ -180,10 +189,26 @@ def plot_centreline_speed():
         # plt.close(plt.gcf())
                               
     u_max_arr = u_max_arr.reshape(PG.shape)
+    uS_max_arr = u_max_arr.reshape(PG.shape)
+    uW_max_arr = u_max_arr.reshape(PG.shape)
+    
+    gs = plt.GridSpec(3, 1)
+    ax0 = plt.subplots(gs[0])
+    ax1 = plt.subplots(gs[1])
+    ax2 = plt.subplots(gs[2])
     
     CS = plt.contourf(lam0_arr, c0_arr, u_max_arr, cmap = 'inferno')    
-    plt.contour(lam0_arr, c0_arr, u_max_arr, c='k')
-    plt.colorbar(CS)    
+    ax0.contour(lam0_arr, c0_arr, u_max_arr, c='k')
+    ax0.colorbar(CS)    
+
+    CS = plt.contourf(lam0_arr, c0_arr, uS_max_arr, cmap = 'inferno')    
+    ax1.contour(lam0_arr, c0_arr, u_max_arr, c='k')
+    ax1.colorbar(CS)    
+
+    CS = plt.contourf(lam0_arr, c0_arr, uW_max_arr, cmap = 'inferno')    
+    ax2.contour(lam0_arr, c0_arr, uW_max_arr, c='k')
+    ax2.colorbar(CS)    
+
     plt.show()
                          
     return
