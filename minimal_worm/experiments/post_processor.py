@@ -326,7 +326,11 @@ class PostProcessor(object):
         # Body average
         avg_psi = np.abs(psi).mean(axis = 1)
         std_psi = np.abs(psi).std(axis = 1)
-                                          
+        # Time average
+
+        avg_psi = avg_psi.mean()
+        std_psi = std_psi.mean()
+        
         return avg_psi, std_psi, psi
 
     @staticmethod

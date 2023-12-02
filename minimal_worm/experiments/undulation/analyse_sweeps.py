@@ -88,11 +88,9 @@ def analyse(
         h5_analysis.create_dataset('lam_std', data = lam_std)
 
     if what_to_calculate.psi:
-        psi_avg, psi_std, psi_avg2, psi_std2 = compute_angle_attack(h5_raw_data)                
+        psi_avg, psi_std = compute_angle_attack(h5_raw_data)                
         h5_analysis.create_dataset('psi', data = psi_avg)
         h5_analysis.create_dataset('psi_std', data = psi_std)
-        h5_analysis.create_dataset('psi_alt', data = psi_avg2)
-        h5_analysis.create_dataset('psi_std_alt', data = psi_std2)
     
     if what_to_calculate.Y:
         Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
@@ -551,10 +549,8 @@ def compute_angle_attack(h5: h5py):
 
     psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack(h5['FS']['r'][0, :], t, T-1)
 
-        
-    psi_arr = np.zeros((h5['FS']['r'].shape[0], len(psi_avg)))    
+    psi_arr = np.zeros((h5['FS']['r'].shape[0]))
     psi_std_arr = np.zeros_like(psi_arr)
-
                 
     for i, r in enumerate(h5['FS']['r']):
 
@@ -563,9 +559,8 @@ def compute_angle_attack(h5: h5py):
         psi_arr[i, :] = psi_avg
         psi_std_arr[i, :] = psi_std
         
-    shape = tuple(h5.attrs["shape"]) + (len(psi_avg),)
                     
-    return psi_arr.reshape(shape), psi_std_arr.reshape(shape) 
+    return psi_arr.reshape(h5.attrs["shape"]), psi_std_arr.reshape(h5.attrs["shape"]) 
 
 def compute_propulsive_force(h5: h5py):
 
