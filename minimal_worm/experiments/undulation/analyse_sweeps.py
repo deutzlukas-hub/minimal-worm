@@ -500,7 +500,7 @@ def compute_maximum_speed(h5: h5py):
         uS_max_arr[i] = uS_max
         uW_max_arr[i] = uW_max
                 
-    return uS_max.reshape(h5.attrs['shape']), uW_max.reshape(h5.attrs['shape'])
+    return uS_max_arr.reshape(h5.attrs['shape']), uW_max_arr.reshape(h5.attrs['shape'])
     
 def compute_wobbling_speed(h5: h5py):
     '''    
