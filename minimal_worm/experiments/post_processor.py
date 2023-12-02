@@ -190,6 +190,39 @@ class PostProcessor(object):
         return U_avg, U, t 
 
     @staticmethod
+    def comp_max_swimming_speed(r: np.ndarray, u: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+        '''
+        Computes average swimming speed projected onto the first principle axis
+        of centre of mass movement. This gives more accurate approximation of the 
+        average speed in cases where the centre of mass wobbles around the swimming
+        direction.
+        
+        :param r (n x 3 x N): centreline coordinates
+        :param u (n x 3 x N): centreline coordinates        
+        :param t (n): time stamps 
+        :param Delta_t: crop time points t < Delta_t        
+        '''        
+
+        # crop initial transient
+        idx_arr = t >= Delta_t
+        dt = t[1]-t[0]
+        r = r[idx_arr,:]
+        t = t[idx_arr]
+        
+        r_com = r.mean(axis = 2)        
+        
+        
+        eS, eW = PostProcessor.comp_propulsion_direction(r_com)
+        
+        uS = np.sum(u * eS[None, :, None], axis = 1)   
+        uW = np.sum(u * eW[None, :, None], axis = 1)   
+            
+        uS_max = np.max(uS, axis = 1).mean()
+        uW_max = np.max(uW, axis = 1).mean()
+        
+        return uS_max, uW_max
+        
+    @staticmethod
     def comp_mean_swimming_speed_simple(r: np.ndarray, t: np.ndarray, Delta_T: float):
         '''
         Computes average swimming speed by taking the start and endpoint
@@ -227,16 +260,12 @@ class PostProcessor(object):
         t = t[idx_arr]
 
         r_com = r.mean(axis = 2)
-        _, w, _ = PostProcessor.com_pca(r_com)
-                
-        # Approx wobbling direction as second principal axis
-        e_w = w[:, 1]
-                                                                                
+        _, eW = PostProcessor.comp_swimming_direction(r_com)
+                                                                                                
         v_com_vec = np.gradient(r_com, dt, axis=0, edge_order=1)    
         
-        # Project velocity on swimming direction
-        Y = np.sum(v_com_vec * e_w, axis = 1)                        
-        # Take average
+        # Project velocity on wobling direction
+        Y = np.sum(v_com_vec * eW, axis = 1)                        
         
         return Y.mean(), np.abs(Y).max(), t 
             
