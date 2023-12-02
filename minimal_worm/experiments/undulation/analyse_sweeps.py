@@ -96,8 +96,10 @@ def analyse(
     
     if what_to_calculate.Y:
         Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
+        SW = compute_wobbling_distance(h5_raw_data)                
         h5_analysis.create_dataset('Y_avg', data = Y_avg)
         h5_analysis.create_dataset('Y_max', data = Y_max)
+        h5_analysis.create_dataset('SW', data = SW)
 
     if what_to_calculate.fp:
         fp_avg = compute_propulsive_force(h5_raw_data)
@@ -501,7 +503,24 @@ def compute_maximum_speed(h5: h5py):
         uW_max_arr[i] = uW_max
                 
     return uS_max_arr.reshape(h5.attrs['shape']), uW_max_arr.reshape(h5.attrs['shape'])
+
+def compute_wobbling_distance(h5: h5py):
+    '''
+    '''
+
+    T = h5.attrs['T']        
+    t = h5['t'][:]
+
+    SW_arr = np.zeros(h5['FS']['r'].shape[0])
+
+    for i, r in enumerate(h5['FS']['r']):
+
+        SW_arr[i] = PostProcessor.comp_wobbling_distance(r, t, Delta_T: T-1)
+        
+    return SW_arr.reshape(h5.attrs['shape'])
     
+    
+
 def compute_wobbling_speed(h5: h5py):
     '''    
     :param h5:
@@ -536,8 +555,6 @@ def compute_angle_attack(h5: h5py):
     psi_arr = np.zeros((h5['FS']['r'].shape[0], len(psi_avg)))    
     psi_std_arr = np.zeros_like(psi_arr)
 
-    psi_arr2 = np.zeros((h5['FS']['r'].shape[0], len(psi_avg)))    
-    psi_std_arr2 = np.zeros_like(psi_arr)
                 
     for i, r in enumerate(h5['FS']['r']):
 
@@ -545,15 +562,10 @@ def compute_angle_attack(h5: h5py):
 
         psi_arr[i, :] = psi_avg
         psi_std_arr[i, :] = psi_std
-    
-        psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack_alternative(h5['FS']['r'][0, :], t, T-1)
-
-        psi_arr2[i, :] = psi_avg
-        psi_std_arr2[i, :] = psi_std
-    
+        
     shape = tuple(h5.attrs["shape"]) + (len(psi_avg),)
                     
-    return psi_arr.reshape(shape), psi_std_arr.reshape(shape), psi_arr2.reshape(shape), psi_std_arr.reshape(shape) 
+    return psi_arr.reshape(shape), psi_std_arr.reshape(shape) 
 
 def compute_propulsive_force(h5: h5py):
 

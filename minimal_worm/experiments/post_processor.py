@@ -192,10 +192,8 @@ class PostProcessor(object):
     @staticmethod
     def comp_max_swimming_speed(r: np.ndarray, u: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
         '''
-        Computes average swimming speed projected onto the first principle axis
-        of centre of mass movement. This gives more accurate approximation of the 
-        average speed in cases where the centre of mass wobbles around the swimming
-        direction.
+        Computes maximum swimming speed projected onto the first and second principle axis
+        of centre of mass movement. 
         
         :param r (n x 3 x N): centreline coordinates
         :param u (n x 3 x N): centreline coordinates        
@@ -221,7 +219,35 @@ class PostProcessor(object):
         uW_max = np.max(uW, axis = 1).mean()
         
         return uS_max, uW_max
+
+    @staticmethod
+    def comp_wobbling_distance(r: np.ndarray, t: np.ndarray, Delta_T: float):
+        '''
+        Computes the absolute distance that the centre of mass has travelled in the 
+        wobbling direction.
+        '''
+                
+        dt = t[1]-t[0]
+        idx_arr = t >= Delta_T
+        r = r[idx_arr, :]
+                        
+        r_com = r.mean(axis = -1)
+                
+        # Compute wobbling direction
+        _, eW = PostProcessor.comp_propulsion_direction(r_com)
+
+        # Project centre-of mass trajectory onto wobbling axis
+        r_com_W = np.sum(r_com * eW[None, :], axis=1)
         
+        # Wobbling velocity
+        Y = np.gradient(r_com_W, dx=dt)
+        
+        # Total distance travelled 
+        SW = np.trapz(np.abs(Y), dx=dt)
+        
+        return SW
+
+
     @staticmethod
     def comp_mean_swimming_speed_simple(r: np.ndarray, t: np.ndarray, Delta_T: float):
         '''
