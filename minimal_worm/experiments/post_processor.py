@@ -240,7 +240,7 @@ class PostProcessor(object):
         r_com_W = np.sum(r_com * eW[None, :], axis=1)
         
         # Wobbling velocity
-        Y = np.gradient(r_com_W, dx=dt)
+        Y = np.gradient(r_com_W, dt)
         
         # Total distance travelled 
         SW = np.trapz(np.abs(Y), dx=dt)
