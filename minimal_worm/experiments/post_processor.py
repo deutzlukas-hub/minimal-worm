@@ -247,7 +247,6 @@ class PostProcessor(object):
         
         return SW
 
-
     @staticmethod
     def comp_mean_swimming_speed_simple(r: np.ndarray, t: np.ndarray, Delta_T: float):
         '''
@@ -294,7 +293,56 @@ class PostProcessor(object):
         Y = np.sum(v_com_vec * eW, axis = 1)                        
         
         return Y.mean(), np.abs(Y).max(), t 
+    
+    @staticmethod
+    def comp_instantenous_body_orientation(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+        '''
+        Computes average amplitude of the wobbling speed. The wobbling speed is orthogonal 
+        to the propulsion direction.
+        
+        :param r (n x 3 x N): centreline coordinates
+        :param t (n): time stamps 
+        :param Delta_t: crop time points t < Delta_t        
+        '''        
+        # crop initial transient
+        idx_arr = t >= Delta_t
+        dt = t[1]-t[0]
+        r = r[idx_arr,:]
+        t = t[idx_arr]
+
+        r_com = r.mean(axis = 2)
+        eS, eW = PostProcessor.comp_swimming_direction(r_com)
+                                                                                                
+
+        w1_arr = np.zeros((r.shape[0], 3))
+        w2_arr = np.zeros((r.shape[0], 3))
+        
+        for i, ri in enumerate(r): 
             
+            C = np.matmul(ri.T, ri)            
+            lam, w =  np.linalg.eig(C)
+            
+            # order from large to small
+            idx_arr = lam.argsort()[::-1]
+            lam = lam[idx_arr]        
+                    
+            w = w[:, idx_arr]
+            
+            w1 = w[:, 0]
+            w2 = w[:, 1]
+            
+            # Make sure that the principal axis points 
+            # in positive swimming direction         
+            
+            if np.dot(w1, eS) < 0:
+                w1 = -w1
+
+            w1_arr[i, :] = w1 
+            w2_arr[i, :] = w2
+
+        return w1_arr, w2_arr
+        
+        
     @staticmethod
     def comp_angle_of_attack(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
         '''
@@ -333,39 +381,7 @@ class PostProcessor(object):
         
         return avg_psi, std_psi, psi
 
-    @staticmethod
-    def comp_angle_of_attack_alternative(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
-    
-        # crop initial transient
-        idx_arr = t >= Delta_t
-        r = r[idx_arr,:]
-        t = t[idx_arr]
 
-        N = r.shape[-1]
-        ds = 1.0/(1-N)
-
-        # Propulsion direction
-        r_com  = np.mean(r, axis = 2)        
-        e_S, e_W = PostProcessor.comp_propulsion_direction(r_com)
-                               
-        r_S = np.sum(r * e_S[None, :, None], axis = 1)
-        r_W = np.sum(r * e_W[None, :, None], axis = 1)
-        
-        m = np.zeros((r_S.shape[0], r_S.shape[1]))
-        
-        for i, (r_S_t, r_W_t) in enumerate(zip(r_S, r_W)):
-        
-            m[i, :] = np.gradient(r_W_t, r_S_t)                                            
-
-        psi = np.arctan(m)
-
-        avg_psi = trapz(np.abs(psi), dx=ds, axis = 1)
-        std_psi = np.sqrt(trapz((psi-avg_psi[:, None])**2, dx=ds, axis = 1))
-
-        # avg_psi = np.mean(avg_psi)
-        # std_psi = np.mean(std_psi)
-        
-        return avg_psi, std_psi, psi
 
     @staticmethod
     def comp_propulsive_force(f_F: np.ndarray, r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
