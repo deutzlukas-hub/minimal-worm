@@ -219,9 +219,9 @@ class PostProcessor(object):
                             
         uS_max = np.max(uS, axis = 1).mean()
         uW_max = np.max(uW, axis = 1).mean()
-        u_abx = np.max(u_abs, axis = 1).mean()
+        u_abs_max = np.max(u_abs, axis = 1).mean()
                 
-        return uS_max, uW_max, u_abs
+        return uS_max, uW_max, u_abs_max
 
     @staticmethod
     def comp_wobbling_distance(r: np.ndarray, t: np.ndarray, Delta_T: float):
