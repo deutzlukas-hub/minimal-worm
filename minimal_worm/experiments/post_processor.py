@@ -358,7 +358,7 @@ class PostProcessor(object):
     @staticmethod
     def comp_body_direction_angle(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
                 
-        w1_arr, _ = PostProcessor.comp_instantenous_body_orientation(r, t, Delta_t)
+        w1_arr, _ , _ = PostProcessor.comp_instantenous_body_orientation(r, t, Delta_t)
         
         r_com = r.mean(axis=-1)
         idx_arr = t>=Delta_t        
