@@ -214,11 +214,14 @@ class PostProcessor(object):
         
         uS = np.sum(u * eS[None, :, None], axis = 1)   
         uW = np.sum(u * eW[None, :, None], axis = 1)   
-            
+        
+        u_abs = np.sqrt(np.sum(u**2, axis=1))
+                            
         uS_max = np.max(uS, axis = 1).mean()
         uW_max = np.max(uW, axis = 1).mean()
-        
-        return uS_max, uW_max
+        u_abx = np.max(u_abs, axis = 1).mean()
+                
+        return uS_max, uW_max, u_abs
 
     @staticmethod
     def comp_wobbling_distance(r: np.ndarray, t: np.ndarray, Delta_T: float):
@@ -311,6 +314,7 @@ class PostProcessor(object):
         t = t[idx_arr]
 
         r_com = r.mean(axis = 2)
+                
         eS, eW = PostProcessor.comp_swimming_direction(r_com)
                                                                                                 
         w1_arr = np.zeros((r.shape[0], 3))
@@ -334,13 +338,20 @@ class PostProcessor(object):
             w1 = w[:, 0]
             w2 = w[:, 1]
 
-            # Check if w1 and w2 exchanged, only relevant for large wavelength
-            # with two first principle components being close
+            # Check if w1 and w2 flipped, only relevant for large wavelength
+            # when first two principle components becomes close
             if i>0:
                 if np.abs(np.dot(w1, w1_arr[i-1, :])) < np.abs(np.dot(w1, w2_arr[i-1, :])):
                     tmp = w2
                     w2 = w1
                     w1 = tmp
+
+            # # Check if w1 points in head tail direction
+            # r_body = ri[:, 0] - ri[:, -1]
+            # if np.abs(np.dot(w1, r_body)) < np.abs(np.dot(w2, r_body)):
+            #         tmp = w2
+            #         w2 = w1
+            #         w1 = tmp
                              
             # Make sure that the principal axis points 
             # in positive swimming direction         
