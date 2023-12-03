@@ -6,6 +6,7 @@ Created on 28 Nov 2023
 import h5py 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 
 # My packages
 from parameter_scan import ParameterGrid
@@ -94,24 +95,72 @@ def plot_instantenous_body_orientation():
         
     T = h5.attrs['T']
     t = h5['t'][:]
-    r_arr = h5['FS']['r']
+    idx_arr = t >= T -1
+    
+    r_arr = h5['FS']['r'][:]
 
     lam0_arr = PG.v_from_key('lam')
     c0_arr = PG.v_from_key('lam')
-    
+
+    plot_dir = fig_dir / 'modulation' / 'body_orientation'    
+    plot_dir.mkdir(exist_ok = True, parents = True)
+
     for k, r in enumerate(r_arr):
+        
+        print(f'Plot {k}...')
+        
+        i,j = np.unravel_index(k, PG.shape)
+        
+        lam0 = lam0_arr[i]
+        c0 = c0_arr[j]
                 
-        r_com = r.mean(axis=2)
-        
-        w1, w2 = PostProcessor.comp_instantenous_body_orientation(r, t, T-1)
+        r_com = r.mean(axis=-1) 
+        r_com = r_com[idx_arr] 
 
-        plt.plot(r_com[:, 1], r_com[:, 2],'-')
-        plt.plot(r_com[::10, 1], r_com[::10, 2],'o')
-        
-        plt.quiver(r_com[::10, 1], r_com[::10, 2], w1[::10, 1], w1[::10, 2], angles='xy', scale_units='xy', scale=1, color=['r', 'g', 'b'])
-        plt.quiver(r_com[::10, 1], r_com[::10, 2], w2[::10, 1], w2[::10, 2], angles='xy', scale_units='xy', scale=1, color=['r', 'g', 'b'])
+        w1, w2, lam_arr = PostProcessor.comp_instantenous_body_orientation(r, t, T-1)
+                
+        gs = plt.GridSpec(3,1)
+        ax00=plt.subplot(gs[0])
+        ax01=plt.subplot(gs[1])
+        ax02=plt.subplot(gs[2])
 
-        plt.show()
+        step = 10
+
+        ax00.plot(r_com[:, 1], r_com[:, 2],'-')
+        ax00.plot(r_com[::step, 1], r_com[::step, 2],'o')
+        
+        ylim = ax00.get_ylim()
+        dY = ylim[1] - ylim[0]  
+        X0 = r_com.mean(axis=0)[1]        
+        ax00.set_xlim([X0-0.5*dY, X0+0.5*dY])
+                        
+        s = 0.05*dY
+        
+        w1_scale = s*w1
+        w2_scale = s*w2
+        
+        for i in range(0, r_com.shape[0], step):
+                                
+            # ax00.arrow([r_com[i, 1], r_com[i, 1]+w1_scale[i, 1]], [r_com[i, 2], r_com[i, 2]+w1_scale[i, 2]], 
+            #     width=0.01*s, fc='r')
+
+            # ax00.arrow(r_com[i, 1], r_com[i, 2], w2_scale[i, 1], w2_scale[i, 2], 
+            #     width=0.01*s, fc='b')
+
+            ax00.plot([r_com[i, 1], r_com[i, 1]+w1_scale[i, 1]], [r_com[i, 2], r_com[i, 2]+w1_scale[i, 2]], c='r')
+            ax00.plot([r_com[i, 1], r_com[i, 1]+w2_scale[i, 1]], [r_com[i, 2], r_com[i, 2]+w2_scale[i, 2]], c='g')
+                        
+        ax00.set_title(fr'$\lambda={lam0}, c_0={c0}$')    
+        ax00.axis('equal')
+        
+        ax01.plot(w1[:, 1], c='r')
+        ax01.plot(w1[:, 2], c='g')
+
+        ax02.plot(lam_arr[:, 0], c='r')
+        ax02.plot(lam_arr[:, 1], c='b')
+                
+        plt.savefig(plot_dir / f'{str(k).zfill(3)}.png')
+        plt.close(plt.gcf())
 
     return
 
