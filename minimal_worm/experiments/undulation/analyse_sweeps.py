@@ -48,11 +48,12 @@ def analyse(
     
     if what_to_calculate.U:                    
         U = compute_swimming_speed(h5_raw_data)
-        uS_max, uW_max = compute_maximum_speed(h5_raw_data)                 
+        uS_max, uW_max, u_abs_max  = compute_maximum_speed(h5_raw_data)                 
         h5_analysis.create_dataset('U', data = U)
         h5_analysis.create_dataset('uS', data = uS_max)
         h5_analysis.create_dataset('uW', data = uW_max)
-    
+        h5_analysis.create_dataset('u_abs', data = u_abs_max)
+
     if what_to_calculate.E:    
         E_dict = compute_energies(h5_raw_data) 
         grp = h5_analysis.create_group('energies')
@@ -494,16 +495,18 @@ def compute_maximum_speed(h5: h5py):
     T = h5.attrs['T']    
     uS_max_arr = np.zeros(h5['FS']['r'].shape[0])    
     uW_max_arr = np.zeros(h5['FS']['r'].shape[0])    
+    u_abs_max_arr = np.zeros(h5['FS']['r'].shape[0])
     
     t = h5['t'][:]
                 
     for i, (r, u) in enumerate(zip(h5['FS']['r'], h5['FS']['r_t'])):
 
-        uS_max, uW_max = PostProcessor.comp_max_swimming_speed(r, u, t, T-1)
+        uS_max, uW_max, u_abs = PostProcessor.comp_max_swimming_speed(r, u, t, T-1)
         uS_max_arr[i] = uS_max
         uW_max_arr[i] = uW_max
-                
-    return uS_max_arr.reshape(h5.attrs['shape']), uW_max_arr.reshape(h5.attrs['shape'])
+        u_abs_max_arr[i] = u_abs
+                        
+    return uS_max_arr.reshape(h5.attrs['shape']), uW_max_arr.reshape(h5.attrs['shape']), u_abs_max_arr.reshape(h5.attrs['shape'])
 
 def compute_wobbling_distance(h5: h5py):
     '''
