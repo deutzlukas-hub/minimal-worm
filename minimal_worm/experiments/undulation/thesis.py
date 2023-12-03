@@ -127,8 +127,9 @@ def default_sweep_parameter():
     parser.add_argument('--calc_psi', action=BooleanOptionalAction, default = False,
         dest = 'psi', help = 'If true, calculate angle of attack')    
     parser.add_argument('--calc_Y', action=BooleanOptionalAction, default = False,
-        dest = 'Y', help = 'If true, calculate angle of attack')    
-        
+        dest = 'Y', help = 'If true, calculate wobbling speed')    
+    parser.add_argument('--calc_fp', action=BooleanOptionalAction, default = False,
+        dest = 'fp', help = 'If true, calculate propulsion force')            
     return parser
 
 #===============================================================================

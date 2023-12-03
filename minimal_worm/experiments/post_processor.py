@@ -313,35 +313,64 @@ class PostProcessor(object):
         r_com = r.mean(axis = 2)
         eS, eW = PostProcessor.comp_swimming_direction(r_com)
                                                                                                 
-
         w1_arr = np.zeros((r.shape[0], 3))
         w2_arr = np.zeros((r.shape[0], 3))
+        lam_arr = np.zeros((r.shape[0], 3))
+        
         
         for i, ri in enumerate(r): 
             
-            C = np.matmul(ri.T, ri)            
+            C = np.matmul(ri, ri.T)            
             lam, w =  np.linalg.eig(C)
             
             # order from large to small
-            idx_arr = lam.argsort()[::-1]
+            idx_arr = np.abs(lam).argsort()[::-1]
             lam = lam[idx_arr]        
+                
+            lam_arr[i, :] = lam
                     
             w = w[:, idx_arr]
-            
+                        
             w1 = w[:, 0]
             w2 = w[:, 1]
-            
+
+            # Check if w1 and w2 exchanged, only relevant for large wavelength
+            # with two first principle components being close
+            if i>0:
+                if np.abs(np.dot(w1, w1_arr[i-1, :])) < np.abs(np.dot(w1, w2_arr[i-1, :])):
+                    tmp = w2
+                    w2 = w1
+                    w1 = tmp
+                             
             # Make sure that the principal axis points 
             # in positive swimming direction         
-            
             if np.dot(w1, eS) < 0:
                 w1 = -w1
 
+            if np.dot(w2, eW) < 0:
+                w2 = -w2
+
             w1_arr[i, :] = w1 
             w2_arr[i, :] = w2
-
-        return w1_arr, w2_arr
+            
+        return w1_arr, w2_arr, lam_arr 
+    
+    @staticmethod
+    def comp_body_direction_angle(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):
+                
+        w1_arr, _ = PostProcessor.comp_instantenous_body_orientation(r, t, Delta_t)
         
+        r_com = r.mean(axis=-1)
+        idx_arr = t>=Delta_t        
+        r_com = r_com[idx_arr]
+                
+        eS, _ = PostProcessor.comp_swimming_direction(r_com)
+        
+        beta = np.arccos(np.sum(w1_arr * eS[None, :]))
+        
+        avg_beta = np.average(np.abs(beta))
+        
+        return avg_beta
         
     @staticmethod
     def comp_angle_of_attack(r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):

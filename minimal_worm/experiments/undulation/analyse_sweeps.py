@@ -95,9 +95,12 @@ def analyse(
     if what_to_calculate.Y:
         Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
         SW = compute_wobbling_distance(h5_raw_data)                
+        beta = compute_body_orientation_angle(h5_raw_data)
+                
         h5_analysis.create_dataset('Y_avg', data = Y_avg)
         h5_analysis.create_dataset('Y_max', data = Y_max)
         h5_analysis.create_dataset('SW', data = SW)
+        h5_analysis.create_dataset('beta', data = beta)
 
     if what_to_calculate.fp:
         fp_avg = compute_propulsive_force(h5_raw_data)
@@ -517,7 +520,19 @@ def compute_wobbling_distance(h5: h5py):
         
     return SW_arr.reshape(h5.attrs['shape'])
     
+def compute_body_orientation_angle(h5: h5py):
     
+    T = h5.attrs['T']        
+    t = h5['t'][:]
+
+    beta_arr = np.zeros(h5['FS']['r'].shape[0])
+
+    for i, r in enumerate(h5['FS']['r']):
+
+        beta_arr[i] = PostProcessor.comp_body_direction_angle(r, t, T-1)
+        
+    return beta_arr.reshape(h5.attrs['shape'])
+
 
 def compute_wobbling_speed(h5: h5py):
     '''    
