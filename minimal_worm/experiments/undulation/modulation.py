@@ -454,7 +454,7 @@ def sweep_f_A_lam(argv):
 
     # Shape-factor and curvature amplitude     
     A_min, A_max = sweep_param.A[0], sweep_param.A[1]
-    A_step = sweep_param.A_step[2]
+    A_step = sweep_param.A[2]
 
     lam_min, lam_max = sweep_param.lam[0], sweep_param.lam[1]
     lam_step = sweep_param.lam[2]
