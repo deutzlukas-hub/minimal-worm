@@ -459,7 +459,7 @@ def sweep_f_A_lam(argv):
     lam_min, lam_max = sweep_param.lam[0], sweep_param.lam[1]
     lam_step = sweep_param.lam[2]
 
-    c_param = {'v_min': A_min, 'v_max': A_max + 0.1*A_step, 
+    A_param = {'v_min': A_min, 'v_max': A_max + 0.1*A_step, 
         'N': None, 'step': A_step, 'round': 1}    
 
     lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1*lam_step, 
@@ -467,7 +467,7 @@ def sweep_f_A_lam(argv):
     
     grid_param = {
         ('a', 'b'): (a_param, b_param),
-        'c': c_param, 
+        'A': A_param, 
         'lam': lam_param}
     
     sweep_parser = default_sweep_parameter()    
