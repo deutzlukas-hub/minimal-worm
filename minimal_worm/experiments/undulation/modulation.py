@@ -375,7 +375,7 @@ def sweep_f_c_lam(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'a_min={a_min}_b_min={b_min}_f_range={log_f_over_f0_range}_'                
+        f'a_min={a_min}_b_min={np.round(b_min,2)}_f_range={log_f_over_f0_range}_'                
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'N={model_param.N}_dt={model_param.dt}_'        
@@ -498,7 +498,7 @@ def sweep_f_A_lam(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'a_min={a_min}_b_min={b_min}_f_range={log_f_over_f0_range}_'                
+        f'a_min={a_min}_b_min={np.round(b_min,2)}_f_range={log_f_over_f0_range}_'                
         f'A_min={A_min}_A_max={A_max}_A_step={A_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'N={model_param.N}_dt={model_param.dt}_'        
