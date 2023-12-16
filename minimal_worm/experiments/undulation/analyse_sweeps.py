@@ -48,11 +48,11 @@ def analyse(
     
     if what_to_calculate.U:                    
         U = compute_swimming_speed(h5_raw_data)
-        uS_max, uW_max, u_abs_max  = compute_maximum_speed(h5_raw_data)                 
+        #uS_max, uW_max, u_abs_max  = compute_maximum_speed(h5_raw_data)                 
         h5_analysis.create_dataset('U', data = U)
-        h5_analysis.create_dataset('uS', data = uS_max)
-        h5_analysis.create_dataset('uW', data = uW_max)
-        h5_analysis.create_dataset('u_abs', data = u_abs_max)
+        #h5_analysis.create_dataset('uS', data = uS_max)
+        #h5_analysis.create_dataset('uW', data = uW_max)
+        #h5_analysis.create_dataset('u_abs', data = u_abs_max)
 
     if what_to_calculate.E:    
         E_dict = compute_energies(h5_raw_data) 
