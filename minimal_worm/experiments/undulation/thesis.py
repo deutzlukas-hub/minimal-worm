@@ -68,7 +68,7 @@ def default_sweep_parameter():
         help = 'If true, save L2 norm of the real and preferred shear-stretch difference')
 
     # Velocity keys
-    parser.add_argument('--r_t', action=BooleanOptionalAction, default = False,
+    parser.add_argument('--r_t', action=BooleanOptionalAction, default = True,
         help = 'If trues, save centreline velocity')
     parser.add_argument('--w', action=BooleanOptionalAction, default = False,
         help = 'If true, save angular velocity')
