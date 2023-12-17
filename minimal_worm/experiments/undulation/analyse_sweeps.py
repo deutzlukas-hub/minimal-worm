@@ -425,9 +425,10 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
                      
         lam_arr = 1.0 / splev(s_arr, tck, der=1)
                 
-        #lam_arr[np.logical_or(lam_arr >= 1.6, lam_arr <= 0.0)] = np.nan                                
+        # Only consider anterior body s<s0 
+        s0 = 0.5        
         lam_mat[i, :] = lam_arr
-        anterior_lam_arr = lam_arr[s_arr <= 0.7]        
+        anterior_lam_arr = lam_arr[s_arr <= s0]        
         lam_avg_arr[i] = anterior_lam_arr.mean()
         lam_std_arr[i] = anterior_lam_arr.std()
 
