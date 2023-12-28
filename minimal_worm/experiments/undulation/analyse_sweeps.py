@@ -325,114 +325,120 @@ def cluster_curvature_zero_crossings(k_all_mat, t_arr, s_arr):
 
     zc_raw_list = []          
     zc_aligned_list = []
-                      
+
     # Iterate over all simulations
-    for i, k_mat in enumerate(k_all_mat):
-
-        t_zc = []
-        s_zc = []
-                
-        # Iterate over body points
-        for s, k_arr in zip(s_arr, k_mat.T):
-
-            # Find zero-crossings of curvature at current body point                         
-            idx_arr = np.where(np.diff(np.sign(k_arr)) != 0)[0]                                
+    for i, k_mat in enumerate(k_all_mat):                
+        # This must be in try block because wavelength 
+        # calculation fails sometimes
+        try:
             
-            # Refine zero-crossings
-            for idx in idx_arr:
-             
-                k1,k2 = k_arr[idx], k_arr[idx+1]                 
-                t1,t2 = t_arr[idx], t_arr[idx+1]
-                
-                m = (k2 - k1) / (t2 - t1)
-                
-                t_zc.append(-(k1 - m*t1) /m)
-                s_zc.append(s)
-                                                                        
-        zc_raw_data = np.hstack((np.array(t_zc)[:, None], np.array(s_zc)[:, None]))
-        zc_raw_list.append(zc_raw_data)
-                
-        dbscan = DBSCAN(eps=0.1, min_samples=3)
-        clusters = dbscan.fit_predict(zc_raw_data)
-        cluster_labels = set(clusters)
+            t_zc = []
+            s_zc = []
 
-        cluster_list = []
-        t_zc_cluster_mean = np.zeros(len(cluster_labels))
-
-        # Get data in each cluster
-        for j, label in enumerate(cluster_labels):            
-            if j == -1:
-                continue
-            
-            idx_arr = clusters == label
-            cluster_data = zc_raw_data[idx_arr, :]                                     
-            idx_arr = np.argsort(cluster_data[:, 0])            
-            cluster_list.append(cluster_data[idx_arr])            
-            
-            t_zc_cluster_mean[j] = cluster_data[:, 0].mean()
-
-        idx_arr = np.argsort(t_zc_cluster_mean)
-        cluster_list = [cluster_list[idx] for idx in idx_arr]
-        
-        # Align clusters                                
-        for j in range(len(cluster_list)-1):
-            
-            current_cluster = cluster_list[j]
-            next_cluster = cluster_list[j+1]            
-
-            dt_arr = []
-
-            for l, s in enumerate(current_cluster[:, 1]):
-                
-                idx = np.where(s == next_cluster[:, 1])[0]                
-                if len(idx) > 0:
-                    dt_arr.append(next_cluster[idx, 0] - current_cluster[l, 0])
-                else:
-                    pass
-                            
-            dt_avg = np.mean(dt_arr)
-            next_cluster[:, 0] -= dt_avg 
-            
-        
-        zc_aligned = np.vstack(cluster_list)
-        # Sort in ascending body coordinates
-        idx_arr = np.argsort(zc_aligned[:, 1])
-        zc_aligned = zc_aligned[idx_arr, :]   
-        zc_aligned_list.append(zc_aligned)
-               
-        # Shift back in time to avoid confusion        
-        dt = zc_raw_data[:, 0].min() - zc_aligned[:, 0].min()
-        zc_aligned[:, 0] = zc_aligned[:, 0] + dt
-                                                                                      
-        # Fit bspline to zero-crossings 
-        t_zc_arr = zc_aligned[:, 0]
-        s_zc_arr = zc_aligned[:, 1]        
-
-        # Thin duplicates 
-        s_zc_arr_thin = [s_zc_arr[0]]
-        t_zc_arr_thin = [t_zc_arr[0]]
+            # Iterate over body points
+            for s, k_arr in zip(s_arr, k_mat.T):
     
-        th = 0.5*ds
-        
-        for s_zc, t_zc in zip(s_zc_arr, t_zc_arr):    
-            if np.abs(s_zc_arr_thin[-1] - s_zc) > th:     
-                s_zc_arr_thin.append(s_zc)
-                t_zc_arr_thin.append(t_zc)
-                        
-        tck  = splrep(s_zc_arr_thin, t_zc_arr_thin, k = 3, s=0.001)
-                    
-        tck_list.append(tck)
-                     
-        lam_arr = 1.0 / splev(s_arr, tck, der=1)
+                # Find zero-crossings of curvature at current body point                         
+                idx_arr = np.where(np.diff(np.sign(k_arr)) != 0)[0]                                
                 
-        # Only consider anterior body s<s0 
-        s0 = 0.5        
-        lam_mat[i, :] = lam_arr
-        anterior_lam_arr = lam_arr[s_arr <= s0]        
-        lam_avg_arr[i] = anterior_lam_arr.mean()
-        lam_std_arr[i] = anterior_lam_arr.std()
-
-                                                                                                                                                           
+                # Refine zero-crossings
+                for idx in idx_arr:
+                 
+                    k1,k2 = k_arr[idx], k_arr[idx+1]                 
+                    t1,t2 = t_arr[idx], t_arr[idx+1]
+                    
+                    m = (k2 - k1) / (t2 - t1)
+                    
+                    t_zc.append(-(k1 - m*t1) /m)
+                    s_zc.append(s)
+                                                                            
+            zc_raw_data = np.hstack((np.array(t_zc)[:, None], np.array(s_zc)[:, None]))
+            zc_raw_list.append(zc_raw_data)
+                    
+            dbscan = DBSCAN(eps=0.1, min_samples=3)
+            clusters = dbscan.fit_predict(zc_raw_data)
+            cluster_labels = set(clusters)
+    
+            cluster_list = []
+            t_zc_cluster_mean = np.zeros(len(cluster_labels))
+    
+            # Get data in each cluster
+            for j, label in enumerate(cluster_labels):            
+                if j == -1:
+                    continue
+                
+                idx_arr = clusters == label
+                cluster_data = zc_raw_data[idx_arr, :]                                     
+                idx_arr = np.argsort(cluster_data[:, 0])            
+                cluster_list.append(cluster_data[idx_arr])            
+                
+                t_zc_cluster_mean[j] = cluster_data[:, 0].mean()
+    
+            idx_arr = np.argsort(t_zc_cluster_mean)
+            cluster_list = [cluster_list[idx] for idx in idx_arr]
+            
+            # Align clusters                                
+            for j in range(len(cluster_list)-1):
+                
+                current_cluster = cluster_list[j]
+                next_cluster = cluster_list[j+1]            
+    
+                dt_arr = []
+    
+                for l, s in enumerate(current_cluster[:, 1]):
+                    
+                    idx = np.where(s == next_cluster[:, 1])[0]                
+                    if len(idx) > 0:
+                        dt_arr.append(next_cluster[idx, 0] - current_cluster[l, 0])
+                    else:
+                        pass
+                                
+                dt_avg = np.mean(dt_arr)
+                next_cluster[:, 0] -= dt_avg 
+                
+            
+            zc_aligned = np.vstack(cluster_list)
+            # Sort in ascending body coordinates
+            idx_arr = np.argsort(zc_aligned[:, 1])
+            zc_aligned = zc_aligned[idx_arr, :]   
+            zc_aligned_list.append(zc_aligned)
+                   
+            # Shift back in time to avoid confusion        
+            dt = zc_raw_data[:, 0].min() - zc_aligned[:, 0].min()
+            zc_aligned[:, 0] = zc_aligned[:, 0] + dt
+                                                                                          
+            # Fit bspline to zero-crossings 
+            t_zc_arr = zc_aligned[:, 0]
+            s_zc_arr = zc_aligned[:, 1]        
+    
+            # Thin duplicates 
+            s_zc_arr_thin = [s_zc_arr[0]]
+            t_zc_arr_thin = [t_zc_arr[0]]
+        
+            th = 0.5*ds
+            
+            for s_zc, t_zc in zip(s_zc_arr, t_zc_arr):    
+                if np.abs(s_zc_arr_thin[-1] - s_zc) > th:     
+                    s_zc_arr_thin.append(s_zc)
+                    t_zc_arr_thin.append(t_zc)
+                            
+            tck  = splrep(s_zc_arr_thin, t_zc_arr_thin, k = 3, s=0.001)
+                        
+            tck_list.append(tck)
+                         
+            lam_arr = 1.0 / splev(s_arr, tck, der=1)
+                    
+            # Only consider anterior body s<s0 
+            s0 = 0.5        
+            lam_mat[i, :] = lam_arr
+            anterior_lam_arr = lam_arr[s_arr <= s0]        
+            lam_avg_arr[i] = anterior_lam_arr.mean()
+            lam_std_arr[i] = anterior_lam_arr.std()
+            
+        except Exception:
+            lam_avg_arr[i] = np.nan
+            lam_std_arr[i] = np.nan
+                                                                                                                                                                               
     return tck_list, lam_mat, lam_avg_arr, lam_std_arr, zc_aligned_list, zc_raw_list #cut_off_idx_arr
 
 
@@ -466,12 +472,7 @@ def compute_undulation_wavelength(h5: h5py):
     k_centre_mat = k_mat[:, t_idx_arr, :]
     k_centre_mat = k_centre_mat[:, :, s_idx_arr]
 
-    try:
-        _, _, lam_avg_arr, lam_std_arr, _, _ = cluster_curvature_zero_crossings(k_centre_mat, t_arr, s_arr)
-    except Exception as e:
-        print(f'An error occured during wavelength calculation: {e}')
-        lam_avg_arr = np.full(k_centre_mat.shape[0], np.nan)
-        lam_std_arr = np.zeros(k_centre_mat.shape[0], np.nan)
+    _, _, lam_avg_arr, lam_std_arr, _, _ = cluster_curvature_zero_crossings(k_centre_mat, t_arr, s_arr)
             
     lam_avg_mat = lam_avg_arr.reshape(h5.attrs['shape'])
     lam_std_mat = lam_std_arr.reshape(h5.attrs['shape'])
