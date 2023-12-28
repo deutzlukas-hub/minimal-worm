@@ -466,8 +466,13 @@ def compute_undulation_wavelength(h5: h5py):
     k_centre_mat = k_mat[:, t_idx_arr, :]
     k_centre_mat = k_centre_mat[:, :, s_idx_arr]
 
-    _, _, lam_avg_arr, lam_std_arr, _, _ = cluster_curvature_zero_crossings(k_centre_mat, t_arr, s_arr)
-
+    try:
+        _, _, lam_avg_arr, lam_std_arr, _, _ = cluster_curvature_zero_crossings(k_centre_mat, t_arr, s_arr)
+    except Exception as e:
+        print(f'An error occured during wavelength calculation: {e}')
+        lam_avg_arr = np.full(k_centre_mat.shape[0], np.nan)
+        lam_std_arr = np.zeros(k_centre_mat.shape[0], np.nan)
+            
     lam_avg_mat = lam_avg_arr.reshape(h5.attrs['shape'])
     lam_std_mat = lam_std_arr.reshape(h5.attrs['shape'])
     
