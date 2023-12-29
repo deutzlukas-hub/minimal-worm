@@ -574,14 +574,14 @@ def sweep_mu_c_lam(argv):
     mu_range = 4.0                            
     mu_over_mu0_arr = np.logspace(0.0, mu_range, N)
                        
-    # Operating-point f=f_start
-    a0, b0 = 10**(-0.5), 10**(-2.0)            
+    # Choose operating-point for f=f0 and mu=m0
+    a0, b0 = 0.1, 2*10**(-2.0)            
     
-    # With sigmoidal frequency modulation
-    log_mu_theta = 2.0    
+    # Operating point with sigmoidal frequency modulation
+    log_mu_theta = 2.5
     alpha = 3.0
     f_min_over_f0 = 0.1
-    
+
     sigmoid_f_over_f0 = lambda log_mu: f_min_over_f0 + (1 - f_min_over_f0) / (1 + np.exp(alpha*(log_mu - log_mu_theta)))    
     f_over_f0_arr = sigmoid_f_over_f0(np.log10(mu_over_mu0_arr))
     
