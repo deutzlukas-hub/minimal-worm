@@ -304,10 +304,10 @@ def sweep_mu_fang_yen(argv):
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
 
-    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 2, 'quantity': 'second'}    
-    lam_param = {'v_arr': lam_arr.tolist(), 'round': 2}
-    A_param = {'v_arr': A_arr.tolist(), 'round': 2}    
-    mu_param = {'v_arr': mu_arr.tolist(), 'round': 5, 'quantity': 'pascal*second'}
+    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
+    A_param = {'v_arr': A_arr.tolist(), 'round': 3}    
+    mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
     
     grid_param = {  
         ('T_c', 'mu', 'A', 'lam'): (T_c_param, mu_param, A_param, lam_param), 
