@@ -253,7 +253,7 @@ def sweep_mu_fang_yen(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--mu', 
-        type=float, nargs=3, default = [-3, 1, 0.5])        
+        type=float, nargs=3, default = [-3, 1, 0.2])        
         
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
