@@ -491,7 +491,7 @@ def sweep_mu_fang_yen_test(argv):
         f'raw_data_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
         f'N={model_param.N}_dt={model_param.dt}_'                
-        f'T={model_param.T}.h5')
+        f'T={model_param.T}_test.h5')
     
     h5_filepath = sweep_dir / filename
 
