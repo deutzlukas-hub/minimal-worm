@@ -439,7 +439,7 @@ def sweep_mu_fang_yen_test(argv):
     f0 = 1.0 / T0
         
     model_param.T_c = T0 * ureg.second
-    model_param.mu = mu0 * ureg.pascal
+    model_param.mu = mu0 * ureg.pascal * ureg.second
                 
     physical_to_dimless_parameters(model_param)
     
