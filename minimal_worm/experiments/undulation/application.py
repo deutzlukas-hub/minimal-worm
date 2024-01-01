@@ -406,8 +406,6 @@ def sweep_mu_fang_yen_test(argv):
     model_param.s0_t = 0.95
     model_param.T = 5.0    
     model_param.use_c = False
-    model_param.a_from_physical = True
-    model_param.b_from_physical = True
         
     # Print all model parameter whose value has been
     # set via the command line
