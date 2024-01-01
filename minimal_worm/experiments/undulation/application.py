@@ -301,6 +301,12 @@ def sweep_mu_fang_yen(argv):
         
     lam_mu, f_mu, A_mu = fang_yen_fit()    
     T_c_arr = 1.0 / f_mu(mu_exp_arr)
+
+    mu0, T0 = mu_arr[0], T_c_arr[0]    
+    model_param.T_c = T0 * ureg.second
+    model_param.mu = mu0 * ureg.pascal * ureg.second
+                
+    physical_to_dimless_parameters(model_param)
     
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
@@ -437,9 +443,13 @@ def sweep_mu_fang_yen_test(argv):
         
     model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal * ureg.second
-                
+
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True                
     physical_to_dimless_parameters(model_param)
-    
+    model_param.a_from_physical = False
+    model_param.b_from_physical = False
+            
     a0, b0 = model_param.a, model_param.b     
     
     a_arr = f_arr / f0 * mu_arr / mu0 * a0.magnitude  
