@@ -25,6 +25,9 @@ from minimal_worm.experiments.undulation import create_storage_dir
 from minimal_worm.experiments.undulation.analyse_sweeps import analyse
 from minimal_worm.experiments.undulation.thesis import default_sweep_parameter
 
+from minimal_worm import physical_to_dimless_parameters
+
+
 ureg = pint.UnitRegistry()
 
 #===============================================================================
@@ -274,9 +277,7 @@ def sweep_mu_fang_yen(argv):
     model_param.Ds_t = 0.01
     model_param.s0_h = 0.05
     model_param.s0_t = 0.95
-    model_param.T = 5.0
-    model_param.use_c = True
-    
+    model_param.T = 5.0    
     model_param.use_c = False
     model_param.a_from_physical = True
     model_param.b_from_physical = True
@@ -301,6 +302,7 @@ def sweep_mu_fang_yen(argv):
         
     lam_mu, f_mu, A_mu = fang_yen_fit()    
     T_c_arr = 1.0 / f_mu(mu_exp_arr)
+    
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
 
@@ -365,11 +367,160 @@ def sweep_mu_fang_yen(argv):
         
     return
     
+
+def sweep_mu_fang_yen_test(argv):
+    '''
+    Sweeps over
+    
+    - drag coefficient ratio C
+    - internal time scale xi/E
+    - fluid viscosity mu         
+    
+    Fit frequency f, lam and A over log of fluid viscosity mu 
+    to Fang Yeng data                       
+    '''
+
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()    
+
+    sweep_parser.add_argument('--mu', 
+        type=float, nargs=3, default = [-3, 1, 0.2])        
+        
+    sweep_param = sweep_parser.parse_known_args(argv)[0]    
+    
+    # The argumentparser for the sweep parameter has a boolean argument 
+    # for ever frame key and control key which can be set to true
+    # if it should be saved 
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]    
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    print(f'FK={FK}')
+
+    # Parse model parameter
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.T = 5.0    
+    model_param.use_c = False
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True
+        
+    # Print all model parameter whose value has been
+    # set via the command line
+    cml_args = {k: v for k, v in vars(model_param).items() 
+        if v != model_parser.get_default(k)}
+    
+    if len(cml_args) != 0: 
+        print(cml_args)
+    
+    #===============================================================================
+    # Init ParameterGrid 
+    #===============================================================================
+    
+    mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
+    mu_exp_step = sweep_param.mu[2]
+
+    mu_exp_arr = np.arange(mu_exp_min, mu_exp_max + 0.1 * mu_exp_step, mu_exp_step)        
+    mu_arr = 10**mu_exp_arr                
+
+    lam_fit, f_fit, A_fit = fang_yen_fit()    
+
+    f_arr = f_fit(mu_exp_arr)     
+    T_c_arr = 1.0 / f_arr
+    
+    # lam_arr = lam_fit(mu_exp_arr)
+    # A_arr = A_fit(mu_exp_arr)
+        
+    mu0, T0 = mu_arr[0], T_c_arr[0]
+    f0 = 1.0 / T0
+        
+    model_param.T_c = T0 #* ureg.hertz
+    model_param.mu = mu0 #* ureg.pascal
+                
+    physical_to_dimless_parameters(model_param)
+    
+    a0, b0 = model_param.a, model_param.b     
+    
+    a_arr = f_arr / f0 * mu_arr / mu0 * a0  
+    b_arr = f_arr / f0 * b0    
+    
+    a_param = {'v_arr': a_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    b_param = {'v_arr': b_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+            
+    # T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    # lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
+    # A_param = {'v_arr': A_arr.tolist(), 'round': 3}    
+    # mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
+    
+    grid_param = {  
+        ('a', 'b'): (a_param, b_param), 
+    }
+    
+    sweep_parser = default_sweep_parameter()    
+        
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()     
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+    #=======================================================================
+    # Run experiments 
+    #=======================================================================
+        
+    # Experiments are run using the Sweeper class for parallelization 
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker, 
+            PG, 
+            UndulationExperiment.stw_control_sequence, 
+            FK,
+            log_dir, 
+            sim_dir, 
+            sweep_param.overwrite, 
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+        
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
+        f'N={model_param.N}_dt={model_param.dt}_'                
+        f'T={model_param.T}.h5')
+    
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:        
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    #===============================================================================
+    # Post analysis 
+    #===============================================================================
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.psi = True        
+        analyse(h5_filepath, what_to_calculate=sweep_param)    
+        
+    return
+    
+    
+    
+    
 if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['mu_fang_yen'], help='Sweep to run')
+        choices = ['mu_fang_yen', 'mu_fang_yen_test'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
