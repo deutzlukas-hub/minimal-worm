@@ -456,7 +456,7 @@ def sweep_mu_fang_yen_test(argv):
     # mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
     
     grid_param = {  
-        ('a', 'b', 'lam', 'A'): (a_param, b_param, lam_param. A_param) 
+        ('a', 'b', 'lam', 'A'): (a_param, b_param, lam_param, A_param) 
     }
     
     sweep_parser = default_sweep_parameter()    
