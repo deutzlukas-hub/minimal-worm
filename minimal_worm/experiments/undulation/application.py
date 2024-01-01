@@ -731,6 +731,10 @@ def sweep_mu_lam_c_fang_yen(argv):
     lam_min, lam_max = sweep_param.lam[0], sweep_param.lam[1]
     lam_step = sweep_param.lam[2]
 
+    # Use E fit from analysis
+    model_param.E.magnitude = 1.73*model_param.E.magnitude 
+    model_param.eta.magnitude = 1.73*model_param.eta.magnitude 
+    
     # Set baseline parameter to lowest viscosity and highest frequency
     mu0, T0 = mu_arr[0], T_c_arr[0]    
     model_param.T_c = T0 * ureg.second
@@ -752,7 +756,6 @@ def sweep_mu_lam_c_fang_yen(argv):
         'lam': lam_param
     }
                  
-    
     sweep_parser = default_sweep_parameter()    
         
     PG = ParameterGrid(vars(model_param), grid_param)
@@ -786,6 +789,8 @@ def sweep_mu_lam_c_fang_yen(argv):
     filename = Path(
         f'raw_data_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
+        f'lam_min={lam_min}_A_max={lam_max}_A_step={lam_step}_'        
+        f'c_min={c_min}_A_max={c_max}_A_step={c_step}_'                
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}.h5')
     
