@@ -438,7 +438,7 @@ def sweep_mu_fang_yen_test(argv):
     mu0, T0 = mu_arr[0], T_c_arr[0]
     f0 = 1.0 / T0
         
-    model_param.T_c = T0 * ureg.hertz
+    model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal
                 
     physical_to_dimless_parameters(model_param)
