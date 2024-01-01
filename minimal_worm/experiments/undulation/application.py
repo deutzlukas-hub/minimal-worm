@@ -677,7 +677,7 @@ def sweep_mu_lam_c_fang_yen(argv):
     sweep_parser.add_argument('--lam', 
         type=float, nargs=3, default = [0.5, 2.0, 0.1])            
     sweep_parser.add_argument('--c', 
-        type=float, nargs=3, default = [0.4, 2.0, 1.0])        
+        type=float, nargs=3, default = [0.4, 2.0, 0.1])        
         
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
@@ -732,8 +732,8 @@ def sweep_mu_lam_c_fang_yen(argv):
     lam_step = sweep_param.lam[2]
 
     # Use E fit from analysis
-    model_param.E.magnitude = 1.73*model_param.E.magnitude 
-    model_param.eta.magnitude = 1.73*model_param.eta.magnitude 
+    model_param.E = 1.73 * model_param.E.magnitude * model_param.E.units
+    model_param.eta = 1.73 * model_param.eta.magnitude * model_param.eta.units
     
     # Set baseline parameter to lowest viscosity and highest frequency
     mu0, T0 = mu_arr[0], T_c_arr[0]    
