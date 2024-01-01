@@ -739,7 +739,6 @@ def sweep_mu_lam_c_fang_yen(argv):
     mu0, T0 = mu_arr[0], T_c_arr[0]    
     model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal * ureg.second
-    physical_to_dimless_parameters(model_param)
     
     c_param = {'v_min': c_min, 'v_max': c_max + 0.1*c_step, 
         'N': None, 'step': c_step, 'round': 2}    
