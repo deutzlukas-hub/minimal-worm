@@ -639,7 +639,7 @@ def sweep_xi_mu_fang_yen(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'x_min_{xi_exp_min}_xi_max_{xi_exp_max}_Nxi={Nxi}_'
+        f'x_min_{xi_exp_min}_xi_max_{xi_exp_max}_x_step={xi_step}_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}_test.h5')
