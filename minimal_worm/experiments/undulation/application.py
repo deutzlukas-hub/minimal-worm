@@ -416,12 +416,16 @@ def sweep_E_mu_fang_yen(argv):
     # Init ParameterGrid 
     #===============================================================================
     
-    E_min = model_param.E * sweep_param.E_over_E0[0]
-    E_max = model_param.E * sweep_param.E_over_E0[1]
+    
+    E_over_E0_min = sweep_param.E_over_E0[0]
+    E_over_E0_max = sweep_param.E_over_E0[1]
     NE = sweep_param.E_over_E0[2]
     
-    eta_min = model_param.eta * sweep_param.E_over_E0[0]
-    eta_max = model_param.eta * sweep_param.E_over_E0[1]
+    E_min = model_param.E * E_over_E0_min
+    E_max = model_param.E * E_over_E0_max
+    
+    eta_min = model_param.eta * E_over_E0_min
+    eta_max = model_param.eta * E_over_E0_max
     Neta = sweep_param.E_over_E0[2]
     
     mu_exp_min, mu_exp_max = sweep_param.mu[0], sweep_param.mu[1]
@@ -491,7 +495,7 @@ def sweep_E_mu_fang_yen(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'E_over_E0_min_{E_min}_E_over_E0_max_{E_max}_NE={NE}_'
+        f'E_over_E0_min_{E_over_E0_min}_E_over_E0_max_{E_over_E0_max}_NE={NE}_'
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}_test.h5')
