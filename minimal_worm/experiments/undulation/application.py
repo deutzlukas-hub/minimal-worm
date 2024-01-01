@@ -27,8 +27,7 @@ from minimal_worm.experiments.undulation.thesis import default_sweep_parameter
 
 from minimal_worm import physical_to_dimless_parameters
 
-
-ureg = pint.UnitRegistry()
+from minimal_worm.model_parameters import ureg
 
 #===============================================================================
 # Experimental data
@@ -439,18 +438,18 @@ def sweep_mu_fang_yen_test(argv):
     mu0, T0 = mu_arr[0], T_c_arr[0]
     f0 = 1.0 / T0
         
-    model_param.T_c = T0 #* ureg.hertz
-    model_param.mu = mu0 #* ureg.pascal
+    model_param.T_c = T0 * ureg.hertz
+    model_param.mu = mu0 * ureg.pascal
                 
     physical_to_dimless_parameters(model_param)
     
     a0, b0 = model_param.a, model_param.b     
     
-    a_arr = f_arr / f0 * mu_arr / mu0 * a0  
-    b_arr = f_arr / f0 * b0    
+    a_arr = f_arr / f0 * mu_arr / mu0 * a0.magnitude  
+    b_arr = f_arr / f0 * b0.magnitude    
     
-    a_param = {'v_arr': a_arr.tolist(), 'round': 3, 'quantity': 'second'}    
-    b_param = {'v_arr': b_arr.tolist(), 'round': 3, 'quantity': 'second'}    
+    a_param = {'v_arr': a_arr.tolist(), 'round': 4}    
+    b_param = {'v_arr': b_arr.tolist(), 'round': 5}    
             
     # T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
     # lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
