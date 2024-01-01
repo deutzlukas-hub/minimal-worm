@@ -507,17 +507,11 @@ def sweep_mu_lam_c_fang_yen(argv):
         
     return
 
-
-    
-    
-    
-    
-    
 if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['mu_fang_yen', 'mu_fang_yen_test'], help='Sweep to run')
+        choices = ['mu_fang_yen', 'mu_fang_yen_test', 'mu_lam_c_fang_yen'], help='Sweep to run')
             
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]    
