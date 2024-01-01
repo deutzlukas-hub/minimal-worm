@@ -444,10 +444,10 @@ def sweep_E_mu_fang_yen(argv):
     physical_to_dimless_parameters(model_param)    
     
     E_param = {'v_min': np.log10(E_min.magnitude), 'v_max': np.log10(E_max.magnitude), 
-        'N': NE, 'step': None, 'log': True, 'round': 0}    
+        'N': NE, 'step': None, 'log': True, 'round': 0, 'quantity': 'pascal'}    
 
     eta_param = {'v_min': np.log10(eta_min.magnitude), 'v_max': np.log10(eta_max.magnitude), 
-        'N': Neta, 'step': None, 'log': True, 'round': 2}
+        'N': Neta, 'step': None, 'log': True, 'round': 2, 'quantity': 'pascal*second'}
 
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
     lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
