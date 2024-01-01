@@ -430,10 +430,9 @@ def sweep_mu_fang_yen_test(argv):
     lam_fit, f_fit, A_fit = fang_yen_fit()    
 
     f_arr = f_fit(mu_exp_arr)     
-    T_c_arr = 1.0 / f_arr
-    
-    # lam_arr = lam_fit(mu_exp_arr)
-    # A_arr = A_fit(mu_exp_arr)
+    T_c_arr = 1.0 / f_arr    
+    lam_arr = lam_fit(mu_exp_arr)
+    A_arr = A_fit(mu_exp_arr)
         
     mu0, T0 = mu_arr[0], T_c_arr[0]
     f0 = 1.0 / T0
@@ -450,14 +449,14 @@ def sweep_mu_fang_yen_test(argv):
     
     a_param = {'v_arr': a_arr.tolist(), 'round': 4}    
     b_param = {'v_arr': b_arr.tolist(), 'round': 5}    
+    lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
+    A_param = {'v_arr': A_arr.tolist(), 'round': 3}    
             
     # T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}    
-    # lam_param = {'v_arr': lam_arr.tolist(), 'round': 3}
-    # A_param = {'v_arr': A_arr.tolist(), 'round': 3}    
     # mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
     
     grid_param = {  
-        ('a', 'b'): (a_param, b_param), 
+        ('a', 'b', 'lam', 'A'): (a_param, b_param, lam_param. A_param) 
     }
     
     sweep_parser = default_sweep_parameter()    
