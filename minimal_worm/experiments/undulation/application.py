@@ -302,10 +302,10 @@ def sweep_mu_fang_yen(argv):
     lam_mu, f_mu, A_mu = fang_yen_fit()    
     T_c_arr = 1.0 / f_mu(mu_exp_arr)
 
+    # Set baseline parameter to lowest viscosity and highest frequency
     mu0, T0 = mu_arr[0], T_c_arr[0]    
     model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal * ureg.second
-                
     physical_to_dimless_parameters(model_param)
     
     lam_arr = lam_mu(mu_exp_arr)
@@ -412,7 +412,9 @@ def sweep_mu_fang_yen_test(argv):
     model_param.s0_t = 0.95
     model_param.T = 5.0    
     model_param.use_c = False
-        
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True                
+                
     # Print all model parameter whose value has been
     # set via the command line
     cml_args = {k: v for k, v in vars(model_param).items() 
@@ -441,12 +443,11 @@ def sweep_mu_fang_yen_test(argv):
     mu0, T0 = mu_arr[0], T_c_arr[0]
     f0 = 1.0 / T0
         
+    # Set baseline parameter to lowest viscosity and highest frequency        
     model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal * ureg.second
-
-    model_param.a_from_physical = True
-    model_param.b_from_physical = True                
-    physical_to_dimless_parameters(model_param)
+    physical_to_dimless_parameters(model_param)    
+    # Turn off, because we calculate a and b per hand
     model_param.a_from_physical = False
     model_param.b_from_physical = False
             
