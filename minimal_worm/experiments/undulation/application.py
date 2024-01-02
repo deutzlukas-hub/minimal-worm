@@ -402,7 +402,7 @@ def sweep_a_b_water_fang_yen(argv):
     lam0, A0 = lam_fit(log_mu0), A_fit(log_mu0) 
     
     model_param.lam = lam0
-    model_param.A0 = A0
+    model_param.A = A0
                 
     # Print all model parameter whose value has been
     # set via the command line
@@ -458,7 +458,7 @@ def sweep_a_b_water_fang_yen(argv):
         f'raw_data_'
         f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
         f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'                
-        f'A={model_param.A}_lam={model_param.lam}_'
+        f'A={np.round(model_param.A,2)}_lam={np.round(model_param.lam, 2)}_'
         f'N={model_param.N}_dt={model_param.dt}_'        
         f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
     
