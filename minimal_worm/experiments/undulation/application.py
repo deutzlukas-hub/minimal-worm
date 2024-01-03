@@ -907,7 +907,7 @@ def sweep_E_xi_mu_fang_yen(argv):
             f'raw_data_'
             f'E_min_{log_E_min}_E_over_E0_max_{log_E_max}_E_step={log_E_step}_'
             f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'
-            f'xi={log_xi}_'            
+            f'xi={np.round(log_xi,1)}_'            
             f'N={model_param.N}_dt={model_param.dt}_'                
             f'T={model_param.T}_test.h5')
         
@@ -941,11 +941,13 @@ def sweep_mu_lam_c_fang_yen(argv):
     sweep_parser = default_sweep_parameter()    
 
     sweep_parser.add_argument('--mu', 
-        type=float, nargs=3, default = [-3, 1, 0.2])        
-    sweep_parser.add_argument('--lam', 
+        type=float, nargs=3, default = [-3, 1.2, 0.2])        
+    sweep_parser.add_argument('--lam0', 
         type=float, nargs=3, default = [0.5, 2.0, 0.1])            
-    sweep_parser.add_argument('--c', 
+    sweep_parser.add_argument('--c0', 
         type=float, nargs=3, default = [0.4, 2.0, 0.1])        
+    sweep_parser.add_argument('--xi', 
+        type=float, nargs=3, default=-2.0)        
         
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
@@ -971,6 +973,8 @@ def sweep_mu_lam_c_fang_yen(argv):
     model_param.a_from_physical = True
     model_param.b_from_physical = True
         
+    physical_to_dimless_parameters(model_param)    
+        
     # Print all model parameter whose value has been
     # set via the command line
     cml_args = {k: v for k, v in vars(model_param).items() 
@@ -993,15 +997,16 @@ def sweep_mu_lam_c_fang_yen(argv):
     T_c_arr = 1.0 / f_sig_fit(mu_exp_arr)
 
     # Shape-factor and curvature amplitude     
-    c_min, c_max = sweep_param.c[0], sweep_param.c[1]
-    c_step = sweep_param.c[2]
+    c_min, c_max = sweep_param.c0[0], sweep_param.c0[1]
+    c_step = sweep_param.c0[2]
 
-    lam_min, lam_max = sweep_param.lam[0], sweep_param.lam[1]
-    lam_step = sweep_param.lam[2]
+    lam_min, lam_max = sweep_param.lam0[0], sweep_param.lam0[1]
+    lam_step = sweep_param.lam0[2]
 
     # Use E fit from analysis
-    model_param.E = 1.73 * model_param.E.magnitude * model_param.E.units
-    model_param.eta = 1.73 * model_param.eta.magnitude * model_param.eta.units
+    log_xi = sweep_param.xi
+    eta = 10**log_xi * model_param.E.magnitude
+    model_param.eta = eta * model_param.eta.units
     
     # Set baseline parameter to lowest viscosity and highest frequency
     mu0, T0 = mu_arr[0], T_c_arr[0]    
