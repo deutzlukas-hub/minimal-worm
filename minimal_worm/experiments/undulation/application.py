@@ -947,7 +947,7 @@ def sweep_mu_lam_c_fang_yen(argv):
     sweep_parser.add_argument('--c0', 
         type=float, nargs=3, default = [0.4, 2.0, 0.1])        
     sweep_parser.add_argument('--xi', 
-        type=float, nargs=3, default=-2.0)        
+        type=float, default=-2.0)        
         
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
