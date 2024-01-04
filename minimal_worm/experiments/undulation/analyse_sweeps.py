@@ -572,7 +572,6 @@ def compute_angle_attack(h5: h5py):
     T = h5.attrs['T']    
     t = h5['t'][:]
 
-    psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack(h5['FS']['r'][0, :], t, T-1)
 
     psi_arr = np.zeros((h5['FS']['r'].shape[0]))
     psi_std_arr = np.zeros_like(psi_arr)
