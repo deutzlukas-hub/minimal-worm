@@ -411,7 +411,8 @@ class PostProcessor(object):
         # tangent and propulsion direction along the body
         psi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
         
-        # Body average
+        max_psi = np.abs(psi).max(axis = 1)
+        # Body average        
         avg_psi = np.abs(psi).mean(axis = 1)
         std_psi = np.abs(psi).std(axis = 1)
         # Time average
@@ -419,9 +420,7 @@ class PostProcessor(object):
         avg_psi = avg_psi.mean()
         std_psi = std_psi.mean()
         
-        return avg_psi, std_psi, psi
-
-
+        return avg_psi, std_psi, max_psi, psi
 
     @staticmethod
     def comp_propulsive_force(f_F: np.ndarray, r: np.ndarray, t: np.ndarray, Delta_t: float = 0.0):

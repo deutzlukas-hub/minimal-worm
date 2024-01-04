@@ -454,8 +454,8 @@ def compute_undulation_wavelength(h5: h5py):
     # mesh
     N = h5['FS']['k'].shape[-1]
     s_arr = np.linspace(0, 1, N)
-        
     # Curvature
+        
     k_mat = h5['FS']['k'][:, :, 0, :] 
 
     # Only analyse the last undulation cycle
@@ -576,16 +576,18 @@ def compute_angle_attack(h5: h5py):
 
     psi_arr = np.zeros((h5['FS']['r'].shape[0]))
     psi_std_arr = np.zeros_like(psi_arr)
+    psi_max_arr = np.zeros_like(psi_arr)
+                
                 
     for i, r in enumerate(h5['FS']['r']):
 
-        psi_avg, psi_std, _ = PostProcessor.comp_angle_of_attack(r, t, T-1)
+        psi_avg, psi_std, max_psi, _ = PostProcessor.comp_angle_of_attack(r, t, T-1)
 
         psi_arr[i] = psi_avg
         psi_std_arr[i] = psi_std
-        
+        psi_max_arr[i] = max_psi
                     
-    return psi_arr.reshape(h5.attrs["shape"]), psi_std_arr.reshape(h5.attrs["shape"]) 
+    return psi_arr.reshape(h5.attrs["shape"]), psi_std_arr.reshape(h5.attrs["shape"]), psi_max_arr.reshape(h5.attrs["shape"]) 
 
 def compute_propulsive_force(h5: h5py):
 
