@@ -411,12 +411,12 @@ class PostProcessor(object):
         # tangent and propulsion direction along the body
         psi = np.arccos(np.sum(r_s * e_p[None, :, None], axis = 1))
         
-        max_psi = np.abs(psi).max(axis = 1)
         # Body average        
+        max_psi = np.abs(psi).max(axis = 1)
         avg_psi = np.abs(psi).mean(axis = 1)
         std_psi = np.abs(psi).std(axis = 1)
         # Time average
-
+        max_psi = max_psi.mean()
         avg_psi = avg_psi.mean()
         std_psi = std_psi.mean()
         
