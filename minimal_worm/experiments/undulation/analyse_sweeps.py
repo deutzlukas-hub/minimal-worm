@@ -89,9 +89,10 @@ def analyse(
         h5_analysis.create_dataset('lam_std', data = lam_std)
 
     if what_to_calculate.psi:
-        psi_avg, psi_std = compute_angle_attack(h5_raw_data)                
+        psi_avg, psi_std, psi_max = compute_angle_attack(h5_raw_data)                
         h5_analysis.create_dataset('psi', data = psi_avg)
         h5_analysis.create_dataset('psi_std', data = psi_std)
+        h5_analysis.create_dataset('psi_max', data = psi_max)
     
     if what_to_calculate.Y:
         Y_avg, Y_max = compute_wobbling_speed(h5_raw_data)
