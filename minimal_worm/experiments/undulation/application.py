@@ -1065,7 +1065,7 @@ def sweep_mu_lam_c_fang_yen(argv):
         f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'        
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'                
-        f'E={np.round(log_E, 2)}_xi={np.round(log_xi,2)}_'        
+        f'E={np.round(log_E, 3)}_xi={np.round(log_xi, 3)}_'        
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}.h5')
     
