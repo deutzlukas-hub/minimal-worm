@@ -1213,7 +1213,7 @@ def sweep_K_mu_fang_yen(argv):
     filename = Path(
         f'raw_data_'
         f'K_min_{K_min}_K_max_{K_max}_K_step={K_step}_'
-        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
+        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
         f'E={model_param.E}_xi={log_xi}_'
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}_test.h5')
