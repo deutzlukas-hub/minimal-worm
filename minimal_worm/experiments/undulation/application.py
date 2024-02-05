@@ -569,9 +569,8 @@ def sweep_c_lam_water_fang_yen(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
-        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'                
-        f'A={np.round(model_param.A,2)}_lam={np.round(model_param.lam, 2)}_'
+        f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
+        f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'                
         f'N={model_param.N}_dt={model_param.dt}_'        
         f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
     
