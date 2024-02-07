@@ -504,7 +504,7 @@ def sweep_c_lam_water_fang_yen(argv):
     model_param.s0_h = 0.05
     model_param.s0_t = 0.95
     model_param.T = 5.0    
-    model_param.use_c = False
+    model_param.use_c = True
     model_param.a_from_physical = True
     model_param.b_from_physical = True                
      
