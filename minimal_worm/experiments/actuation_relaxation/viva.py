@@ -7,7 +7,6 @@ from sys import argv
 from types import SimpleNamespace
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
-from fenics import Function
 import pickle
 
 from parameter_scan import ParameterGrid
@@ -20,7 +19,7 @@ from minimal_worm.experiments.experiment import simulate_experiment
 from minimal_worm.experiments.sweeper import Sweeper
 from minimal_worm.experiments.undulation.thesis import default_sweep_parameter
 from minimal_worm.experiments.actuation_relaxation.actuation_relaxation import ActuationRelaxationExperiment
-from minimal_worm.experiments.actuation_relaxation.dirs import sim_dir, log_dir, create_storage_dir
+from minimal_worm.experiments.actuation_relaxation.dirs import sim_dir, log_dir, sweep_dir, create_storage_dir
 
 
 def default_sweep_parameter():
@@ -253,10 +252,10 @@ def sweep_c_lam(argv):
         
     PG = ParameterGrid(vars(model_param), grid_param)
 
+    a, b = model_param.a.magnitude, model_param.b.magnitude
+    
     if sweep_param.save_to_storage:
         log_dir, sim_dir, sweep_dir = create_storage_dir()     
-    else:
-        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
         
     # Experiments are run using the Sweeper class for parallelization 
     if sweep_param.run:
@@ -277,7 +276,7 @@ def sweep_c_lam(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'a={model_param.a}_b={model_param.b}_'                
+        f'a={round(a, 3)}_b={round(b, 3)}_'                
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'N={model_param.N}_dt={model_param.dt}_'        
@@ -288,8 +287,12 @@ def sweep_c_lam(argv):
     if sweep_param.pool:        
         Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
     
-    return
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
     
+    
+    
+    return
+
 if __name__ == '__main__':
        
     #run_actuation_relaxation_experiments(argv)
