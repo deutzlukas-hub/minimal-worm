@@ -57,7 +57,7 @@ def run_actuation_relaxation_experiments(argv):
         
     # Save data
     FS_dict = SimpleNamespace(**{
-        'x': FS.r,
+        'r': FS.r,
         'd1': FS.d1,
         'd2': FS.d2,
         'd3': FS.d3,
