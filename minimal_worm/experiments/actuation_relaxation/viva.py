@@ -15,6 +15,7 @@ from minimal_worm.experiments.actuation_relaxation.actuation_relaxation import A
 from minimal_worm.experiments.experiment import simulate_experiment
 from minimal_worm.experiments.actuation_relaxation.dirs import sim_dir, log_dir, video_dir
 from minimal_worm.worm import Worm
+from types import SimpleNamespace
 
 def run_actuation_relaxation_experiments(argv):
     
@@ -42,20 +43,28 @@ def run_actuation_relaxation_experiments(argv):
     model_param.use_c = True
     model_param.c = 1.0
     model_param.lam = 1.0
-        
+                
     # Control sequence
     CS = ActuationRelaxationExperiment.actuation_relaxation_control_sequence(model_param)
 
     # Run experiment             
     worm = Worm(model_param.N, model_param.dt, fdo = model_param.fdo, quiet=False)
     
-    FS, CS, MP, e, sim_t  = simulate_experiment(worm, model_param, CS)    
+    FS, CS, _, e, _  = simulate_experiment(worm, model_param, CS)    
 
     if e is not None:
         assert False
         
     # Save data
-
+    FS_dict = SimpleNamespace(**{
+        'x': FS.r,
+        'd1': FS.d1,
+        'd2': FS.d2,
+        'd3': FS.d3,
+        't': FS.t,  
+        'k': FS.k
+    })
+        
     filepath= sim_dir / Path(
         f'raw_data_'
         f'c={model_param.c}_lam={model_param.lam}_'
@@ -63,8 +72,10 @@ def run_actuation_relaxation_experiments(argv):
         f'N={model_param.N}_dt={model_param.dt}_'        
         f'T={model_param.T}.h5')
     
-    Sweeper.save_output(filepath, FS, CS, MP, model_param, e, sim_t)
+
+    pickle.dump(FS_dict, open(filepath, 'wb'))
         
+            
     print(f'Saved file to {filepath}')
     
     return    
