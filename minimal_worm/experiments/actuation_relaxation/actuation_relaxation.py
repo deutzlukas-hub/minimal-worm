@@ -3,7 +3,8 @@ Created on 5 Mar 2024
 
 @author: amoghasiddhi
 '''
-from argparse import BooleanOptionalAction
+from argparse import BooleanOptionalAction, Namespace
+
 
 import numpy as np
 from fenics import Constant, Expression
@@ -41,6 +42,12 @@ class ActuationRelaxationExperiment(Experiment):
         
         :param parameter:
         '''                                                                                                                                    
+
+        if isinstance(param, dict):
+            param_dict = param
+            param = Namespace()
+            param.__dict__.update(param_dict)
+
 
         # Kinematic param
         lam = param.lam
