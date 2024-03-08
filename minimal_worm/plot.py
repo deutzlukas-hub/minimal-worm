@@ -36,8 +36,8 @@ class MidpointNormalize(colors.Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
         return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
 
-
 def plot_scalar_field(
+
     ax: Axes,
     M: np.ndarray,
     eps: float = 1e-3,
@@ -70,7 +70,7 @@ def plot_scalar_field(
         aspect="auto",
         origin="lower",
         vmin = v_min,
-        vmax= v_max,                
+        vmax = v_max,                
         extent=extent
     )    
 
@@ -118,7 +118,7 @@ def plot_scalar_field(
             fontweight="bold",
         )
 
-    cbar = plt.gcf().colorbar(m, ax=ax, **cbar_kwargs)
+    cbar = plt.colorbar(m, ax=ax, **cbar_kwargs)
 
     #format=cbar_format
 
