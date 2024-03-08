@@ -214,7 +214,7 @@ def sweep_c_lam(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'a={a}_b={b}_'                
+        f'a={round(a,3)}_b={round(b,3)}_'                
         f'c_min={c_min}_c_max={c_max}_c_step={c_step}_'
         f'lam_min={lam_min}_lam_max={lam_max}_lam_step={lam_step}_'
         f'N={model_param.N}_dt={model_param.dt}_'        
