@@ -256,6 +256,21 @@ def sweep_a_b(argv):
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
 
+    # Simulation
+    model_param.T = 5.0
+    model_param.dt = 0.001
+    model_param.N = 750
+ 
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+
+    # Waveform
+    model_param.c = 1.0
+    model_param.use_c = True
+    
     # Print all model parameter whose value has been
     # set via the command line
     cml_args = {k: v for k, v in vars(model_param).items() 
