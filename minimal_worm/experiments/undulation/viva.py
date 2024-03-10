@@ -334,7 +334,7 @@ def sweep_a_b(argv):
                 
     return
 
-def sweep_a_b_list():
+def sweep_a_b_list(argv):
     '''
     Simulate small number of a and b values
     '''
