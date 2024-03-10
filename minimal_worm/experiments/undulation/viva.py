@@ -388,7 +388,7 @@ def sweep_a_b_list(argv):
     a_param = {'v_arr': a_arr, 'round': 4, 'log': False}
     b_param = {'v_arr': b_arr, 'round': 5, 'log': False}
 
-    grid_param = {'a': a_param, 'b': b_param}
+    grid_param = {('a', 'b'): (a_param, b_param)}
     
     PG = ParameterGrid(vars(model_param), grid_param)
 
