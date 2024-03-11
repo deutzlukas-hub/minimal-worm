@@ -820,7 +820,7 @@ def sweep_xi_mu_fang_yen(argv):
         
     mu0, T0 = mu_arr[0], T_c_arr[0]
 
-    log_E = np.log10(model_param.E.magnitude)
+    log_E = np.round(np.log10(model_param.E.magnitude),1)
         
     # Set baseline parameter to lowest viscosity and highest frequency        
     model_param.T_c = T0 * ureg.second
