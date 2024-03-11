@@ -798,7 +798,7 @@ def sweep_xi_mu_fang_yen(argv):
     #===============================================================================
     # Init ParameterGrid 
     #===============================================================================
-        
+    
     xi_exp_min = sweep_param.xi[0]
     xi_exp_max = sweep_param.xi[1]        
     xi_step = sweep_param.xi[2]
@@ -819,6 +819,8 @@ def sweep_xi_mu_fang_yen(argv):
     A_arr = A_fit(mu_exp_arr)
         
     mu0, T0 = mu_arr[0], T_c_arr[0]
+
+    log_E = np.log10(model_param.E.magnitude)
         
     # Set baseline parameter to lowest viscosity and highest frequency        
     model_param.T_c = T0 * ureg.second
@@ -869,9 +871,9 @@ def sweep_xi_mu_fang_yen(argv):
     filename = Path(
         f'raw_data_'
         f'x_min_{xi_exp_min}_xi_max_{xi_exp_max}_x_step={xi_step}_'
-        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
+        f'E={log_E}_mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
         f'N={model_param.N}_dt={model_param.dt}_'                
-        f'T={model_param.T}_test.h5')
+        f'T={model_param.T}.h5')
     
     h5_filepath = sweep_dir / filename
 
