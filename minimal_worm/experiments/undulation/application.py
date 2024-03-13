@@ -33,7 +33,7 @@ from minimal_worm.model_parameters import ureg
 # Experimental data
 #===============================================================================
 
-def fang_yen_data():
+def fang_yen_data(return_theta=False):
     '''
     Undulation wavelength, amplitude, frequencies for different viscosities
     from Fang-Yen 2010 paper    
@@ -43,6 +43,12 @@ def fang_yen_data():
     lam_arr = np.array([1.516, 1.388, 1.328, 1.239, 1.032, 0.943, 0.856, 0.799])        
     f_arr = [1.761, 1.597, 1.383, 1.119, 0.790, 0.650, 0.257, 0.169] # Hz
     A_arr = [2.872, 3.126, 3.290, 3.535, 4.772, 4.817, 6.226, 6.735]
+    
+    theta_max = [44.11, 41.25, 42.13, 41.79, 44.58, 45.46, 54.43, 55.65] # degrees
+            
+    if return_theta:
+        return mu_arr, theta_max
+                
     
     return mu_arr, lam_arr, f_arr, A_arr
 
@@ -153,6 +159,11 @@ def sweep_mu_fang_yen(argv):
     model_param.T_c = T0 * ureg.second
     model_param.mu = mu0 * ureg.pascal * ureg.second
     physical_to_dimless_parameters(model_param)
+
+    # Take eta estimate from thesis
+    log_eta = 3.35
+    eta = 10**log_eta
+    model_param.eta = eta * model_param.eta.units
     
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
