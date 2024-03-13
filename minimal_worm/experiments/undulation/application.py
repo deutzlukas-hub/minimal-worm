@@ -108,6 +108,8 @@ def sweep_mu_fang_yen(argv):
 
     sweep_parser.add_argument('--mu', 
         type=float, nargs=3, default = [-3, 1, 0.2])        
+    sweep_parser.add_argument('--xi',
+        type=float, default = -1.7)
         
     sweep_param = sweep_parser.parse_known_args(argv)[0]    
     
@@ -161,9 +163,13 @@ def sweep_mu_fang_yen(argv):
     physical_to_dimless_parameters(model_param)
 
     # Take eta estimate from thesis
-    log_eta = 3.35
-    eta = 10**log_eta
-    model_param.eta = eta * model_param.eta.units
+    # log_eta = 3.35
+    # eta = 10**log_eta
+    # model_param.eta = eta * model_param.eta.units
+    
+    log_xi = sweep_param.xi
+    eta = 10**log_xi * model_param.E.magnitude
+    model_param.eta = eta * model_param.units
     
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
@@ -209,7 +215,8 @@ def sweep_mu_fang_yen(argv):
     # Pool and save simulation results to hdf5
     filename = Path(
         f'raw_data_'
-        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}'        
+        f'mu_min={mu_exp_min}_mu_max={mu_exp_max}_mu_step={mu_exp_step}_'        
+        f'xi={round(log_xi, 2)}_'
         f'N={model_param.N}_dt={model_param.dt}_'                
         f'T={model_param.T}.h5')
     
