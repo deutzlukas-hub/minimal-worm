@@ -169,7 +169,7 @@ def sweep_mu_fang_yen(argv):
     
     log_xi = sweep_param.xi
     eta = 10**log_xi * model_param.E.magnitude
-    model_param.eta = eta * model_param.units
+    model_param.eta = eta * model_param.eta.units
     
     lam_arr = lam_mu(mu_exp_arr)
     A_arr = A_mu(mu_exp_arr)
