@@ -289,8 +289,6 @@ def sweep_c_lam(argv):
     
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
     
-    
-    
     return
 
 if __name__ == '__main__':

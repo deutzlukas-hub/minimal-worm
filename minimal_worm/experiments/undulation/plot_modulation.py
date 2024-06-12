@@ -27,7 +27,6 @@ def load_data(filename):
     PG_filepath = log_dir / h5.attrs['grid_filename']
     PG = ParameterGrid.init_pg_from_filepath(str(PG_filepath))
 
-
     return h5, PG
 
 def plot_wobbling():

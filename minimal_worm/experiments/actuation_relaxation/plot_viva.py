@@ -57,16 +57,49 @@ def actuation_relaxation_curvature_videos():
             k = h5['FS']['k'][k, :, 0, :]
             k0 = h5['CS']['k0'][k, :, 0, :]
             
+            times = h5['t']
+            
             gs = plt.GridSpec(2, 1)
             ax00 = plt.subplot(gs[0])
             ax01 = plt.subplot(gs[1])
             
             plot_scalar_field(ax00, k0, extent = [0.0, 5.0, 0.0, 1.0], cmap = 'seismic')
             plot_scalar_field(ax01, k, extent = [0.0, 5.0, 0.0, 1.0], cmap = 'seismic')
+
+            vertical_line_1, = ax00.plot([], [], color='red', linestyle='--')
+            vertical_line_2, = ax01.plot([], [], color='red', linestyle='--')
+
             
             plt.savefig(video_dir / f'c={c}_lam={lam}.png')
+
+            # Animation function
+            def animate(t):
+                # Set the position of the vertical line
+                vertical_line_1.set_data([t, t], [-1, 1])
+                vertical_line_1.set_data([t, t], [-1, 1])
+                                
+                return vertical_line_1,
+            
+            # Create the animation
+            ani = FuncAnimation(fig, animate, frames=times, interval=100)
+            
+            plt.show()
+
             
     return
+
+
+
+
+# Create the figure and axis
+fig, ax = plt.subplots()
+line, = ax.plot(x, y)
+
+# Set the axis limits
+ax.set_xlim(0, 10)
+ax.set_ylim(-1, 1)
+
+
 
 if __name__ == '__main__':
     

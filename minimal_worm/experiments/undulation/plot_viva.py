@@ -46,7 +46,8 @@ def undulation_curvature_videos():
     lam0_arr = PG.v_from_key('lam0')
     
     t = h5['t'][:] 
-
+    T = PG.base_parameter['T'].magnitude
+    
     video_dir = video_storage / 'undulation' / h5_filename.stem
     video_dir.mkdir(parents=True, exist_ok = True)
     
@@ -65,11 +66,11 @@ def undulation_curvature_videos():
             ax00 = plt.subplot(gs[0])
             ax01 = plt.subplot(gs[1])
             
-            plot_scalar_field(ax00, k0, extent = [0.0, 5.0, 0.0, 1.0], cmap = 'seismic')
-            plot_scalar_field(ax01, k, extent = [0.0, 5.0, 0.0, 1.0], cmap = 'seismic')
+            plot_scalar_field(ax00, k0, extent = [0.0, T, 0.0, 1.0], cmap = 'seismic')
+            plot_scalar_field(ax01, k, extent = [0.0, T, 0.0, 1.0], cmap = 'seismic')
 
-            vertical_line_1, = ax00.plot([], [], color='red', linestyle='--')
-            vertical_line_2, = ax01.plot([], [], color='red', linestyle='--')
+            vertical_line_1, = ax00.plot([], [], color='k', linestyle='--')
+            vertical_line_2, = ax01.plot([], [], color='k', linestyle='--')
             
             plt.savefig(video_dir / f'c0={c0}_lam0={lam0}.png')
 
