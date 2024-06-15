@@ -493,8 +493,120 @@ def sweep_a_b_water_fang_yen(argv):
         sweep_param.lam = True                        
         analyse(h5_filepath, what_to_calculate=sweep_param)    
     return
-    
-def sweep_c_lam_water_fang_yen(argv):    
+
+def sweep_a_b_peanut_butter_fang_yen(argv):
+    # Parse sweep parameter
+    sweep_parser = default_sweep_parameter()
+
+    sweep_parser.add_argument('--a',
+                              type=float, nargs=3, default=[-2, 3, 0.1])
+    sweep_parser.add_argument('--b',
+                              type=float, nargs=3, default=[-2, 1, 0.1])
+
+    sweep_param = sweep_parser.parse_known_args(argv)[0]
+
+    # The argumentparser for the sweep parameter has a boolean argument
+    # for ever frame key and control key which can be set to true
+    # if it should be saved
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    print(f'FK={FK}')
+
+    # Parse model parameter
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.T = 5.0
+    model_param.use_c = False
+
+    # Waveform from experimental data
+    lam_fit, _, A_fit = fang_yen_fit()
+    # Water
+    log_mu0 = 1
+    lam0, A0 = lam_fit(log_mu0), A_fit(log_mu0)
+
+    model_param.lam = lam0
+    model_param.A = A0
+
+    # Print all model parameter whose value has been
+    # set via the command line
+    cml_args = {k: v for k, v in vars(model_param).items()
+                if v != model_parser.get_default(k)}
+
+    if len(cml_args) != 0:
+        print(cml_args)
+
+    # Create the ParameterGrid over which we want to run
+    # the undulation experiments
+    a_min, a_max = sweep_param.a[0], sweep_param.a[1]
+    a_step = sweep_param.a[2]
+
+    b_min, b_max = sweep_param.b[0], sweep_param.b[1]
+    b_step = sweep_param.b[2]
+
+    a_param = {'v_min': a_min, 'v_max': a_max + 0.1 * a_step,
+               'N': None, 'step': a_step, 'round': 4, 'log': True}
+
+    b_param = {'v_min': b_min, 'v_max': b_max + 0.1 * b_step,
+               'N': None, 'step': b_step, 'round': 5, 'log': True}
+
+    grid_param = {'a': a_param, 'b': b_param}
+
+    sweep_parser = default_sweep_parameter()
+
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+    # Experiments are run using the Sweeper class for parallelization
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker,
+            PG,
+            UndulationExperiment.stw_control_sequence,
+            FK,
+            log_dir,
+            sim_dir,
+            sweep_param.overwrite,
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
+        f'A={np.round(model_param.A, 2)}_lam={np.round(model_param.lam, 2)}_'
+        f'N={model_param.N}_dt={model_param.dt}_'
+        f'T={model_param.T}_pic_on={model_param.pic_on}.h5')
+
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.f = True
+        sweep_param.lag = True
+        sweep_param.lam = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)
+    return
+
+
+def sweep_c_lam_water_fang_yen(argv):
     
     # Parse sweep parameter
     sweep_parser = default_sweep_parameter()    
@@ -1532,7 +1644,7 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument('-sweep',  
-        choices = ['mu_fang_yen', 'mu_fang_yen_test', 'a_b_water_fang_yen', 'c_lam_water_fang_yen',
+        choices = ['mu_fang_yen', 'mu_fang_yen_test', 'a_b_water_fang_yen', 'a_b_peanut_butter_fang_yen', 'c_lam_water_fang_yen',
         'mu_lam_c_fang_yen', 'mu_lam_c_fang_yen_fit_E', 'E_mu_fang_yen', 'xi_mu_fang_yen',
         'E_xi_mu_fang_yen', 'K_mu_fang_yen'], help='Sweep to run')
                                     
