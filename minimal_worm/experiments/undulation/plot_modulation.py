@@ -82,11 +82,55 @@ def plot_wobbling():
             
     return
 
+def plot_body_postures():
+
+    h5_fn = ('raw_data_a=1.0_b=0.0032_'
+        'c_min=0.4_c_max=1.6_c_step=0.1_'
+        'lam_min=0.5_lam_max=2.0_lam_step=0.1_'
+        'N=250_dt=0.01_T=5.0_pic_on=False.h5'
+    )
+
+    h5, PG = load_data(h5_fn)
+
+    T = h5.attrs['T']
+    t = h5['t'][:]
+    idx_arr = t >= T -1
+    
+    r_arr = h5['FS']['r']
+
+    lam0_arr = PG.v_from_key('lam')
+    c0_arr = PG.v_from_key('lam')
+
+    lam0 = 2.0
+    c0 = 1.0
+
+    i = np.abs(lam0_arr - lam0).argmin()
+    j = np.abs(c0_arr - c0).argmin()
+
+    k = np.ravel_multi_index((j, i), PG.shape)
+
+    rk_arr = r_arr[k, :]
+    rk_arr = rk_arr[idx_arr]
+
+    for r in rk_arr[::20]:                
+        line, = plt.plot(r[1, :], r[2, :])
+        rH = r[:, 0]
+        rT = r[:, -1]
+                        
+        plt.plot([rH[1], rT[1]], [rH[2], rT[2]], 
+            ls = '--',
+            c=line.get_color())
+
+    plt.axis('equal')        
+    plt.show()
+
+    return
+
 def plot_instantenous_body_orientation():
     
     h5_fn = ('raw_data_a=1.0_b=0.0032_'
-        'c_min=0.4_c_max=1.6_c_step=0.2_'
-        'lam_min=0.5_lam_max=2.0_lam_step=0.2_'
+        'c_min=0.4_c_max=1.6_c_step=0.1_'
+        'lam_min=0.5_lam_max=2.0_lam_step=0.1_'
         'N=250_dt=0.01_T=5.0_pic_on=False.h5'
     )
 
@@ -300,6 +344,7 @@ if __name__ == '__main__':
     #plot_wobbling() 
     #plot_propulsive_force()    
     #plot_centreline_speed()
-    plot_instantenous_body_orientation()
+    #plot_instantenous_body_orientation()
+    plot_body_postures()
     
 
