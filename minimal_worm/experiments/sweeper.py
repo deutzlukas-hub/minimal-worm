@@ -100,8 +100,9 @@ class Sweeper():
                 exit_status = output['exit_status'] 
                             
                 if exit_status:
-                    raise FWException(FS.pic, param['T'], param['dt'], FS.times[-1])
-                
+                    raise FWException(None, param['T'], param['dt'], FS.times[-1])
+
+
                 result = {}
                 result['pic'] = None
                 
