@@ -1168,37 +1168,4 @@ if __name__ == '__main__':
     args = parser.parse_known_args(argv)[0]
     globals()['sweep_' + args.sweep](argv)
 
-    pass
-
-
-
-    # Pool and save simulation results to hdf5
-    filename = Path(
-        f'raw_data_'
-        f'mu_min={log_mu_min}_mu_max={log_mu_max}_mu_step_{log_mu_step}_'
-        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
-        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
-        f'N={model_param.N}_dt={model_param.dt}_'
-        f'T={model_param.T}.h5')
-
-    h5_filepath = sweep_dir / filename
-
-    if sweep_param.pool:
-        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
-
-    if sweep_param.analyse:
-        analyse(h5_filepath, what_to_calculate=sweep_param)
-
-if __name__ == '__main__':
-
-    parser = ArgumentParser()
-    parser.add_argument('--sweep',
-                        choices=['mu_a_b', 'lam0_c0', 'mu_lam0_c0'], help='Sweep to run')
-
-    # Run function passed via command line
-    args = parser.parse_known_args(argv)[0]
-    globals()['sweep_' + args.sweep](argv)
-
-    pass
-
 
