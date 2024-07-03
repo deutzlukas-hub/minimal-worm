@@ -357,8 +357,7 @@ def sweep_mu_lam0_c0(argv):
     model_param.eta = eta * model_param.eta.units
 
     # Print all model parameter whose value has been set via the command line
-    cml_args = {k: v for k, v in vars(model_param).items()
-                if v != model_parser.get_default(k)}
+    cml_args = {k: v for k, v in vars(model_param).items() if v != model_parser.get_default(k)}
 
     if len(cml_args) != 0:
         print(cml_args)
@@ -370,12 +369,12 @@ def sweep_mu_lam0_c0(argv):
     log_mu_min, log_mu_max, log_mu_step = sweep_param.mu[0], sweep_param.mu[1], sweep_param.mu[2]
     log_mu_arr = np.arange(log_mu_min, log_mu_max + 0.1 * log_mu_step, log_mu_step)
     mu_arr = 10 ** log_mu_arr
-    c_min, c_max, c_step = sweep_param.c0[0], sweep_param.c0[1], sweep_param.c0[2]
-    lam_min, lam_max, lam_step = sweep_param.lam0[0], sweep_param.lam0[1], sweep_param.lam0[2]
-
     # Determine undualtion frequency from experimental fit
     _, f_sig_fit, _ = fang_yen_fit()
-    T_c_arr = 1.0 / f_sig_fit(mu_arr)
+    T_c_arr = 1.0 / f_sig_fit(log_mu_arr)
+
+    c_min, c_max, c_step = sweep_param.c0[0], sweep_param.c0[1], sweep_param.c0[2]
+    lam_min, lam_max, lam_step = sweep_param.lam0[0], sweep_param.lam0[1], sweep_param.lam0[2]
 
     c_param = {'v_min': c_min, 'v_max': c_max + 0.1 * c_step, 'N': None, 'step': c_step, 'round': 2}
     lam_param = {'v_min': lam_min, 'v_max': lam_max + 0.1 * lam_step, 'N': None, 'step': lam_step, 'round': 2}
