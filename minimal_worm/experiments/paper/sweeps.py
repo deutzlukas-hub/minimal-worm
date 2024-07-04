@@ -712,11 +712,141 @@ def sweep_mu_a_b(argv):
         sweep_param.psi = True
         analyse(h5_filepath, what_to_calculate=sweep_param)
 
+def sweep_mu_lam_A_exp():
+
+    sweep_parser = default_sweep_parameter()
+    sweep_param = sweep_parser.parse_known_args(argv)[0]
+
+
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.use_c = False
+    model_param.T = 5.0
+
+    # Set xi
+    log_xi = -1.73
+    eta = 10 ** log_xi * model_param.E.magnitude
+    model_param.eta = eta * model_param.eta.units
+
+    model_param.a_from_physical = True
+    model_param.b_from_physical = True
+
+    #================================================================================================
+    # Parameter Grid
+    #================================================================================================
+
+    # Choose preferred wavelength and amplitude such that model yields correct output wavenlength and amplitude
+    h5_filename = 'analysis_mu_min=-3.0_mu_max=1.0_mu_step=0.2_lam_min=0.5_lam_max=2.0_lam_step=0.1_c_min=0.5_c_max=2.0_c_step=0.1_E=5.08_xi=-1.73_N=250_dt=0.01_T=5.0.h5'
+    h5, PG = load_data(h5_filename)
+
+    # 1: Load sweep mu over lambda_0 and c_0
+    mu_arr = PG.v_from_key('mu')
+    log_mu_arr = np.log10(mu_arr)
+    log_mu_min, log_mu_max  = log_mu_arr[0], log_mu_arr[1]
+    log_mu_step = log_mu_max - log_mu_min
+
+    lam0_arr, c0_arr = PG.v_from_key('lam'), PG.v_from_key('c')
+    lam0_arr_refine = np.linspace(lam0_arr.min(), lam0_arr.max(), 100*len(lam0_arr))
+    c0_arr_refine = np.linspace(c0_arr.min(), c0_arr.max(), 100*len(c0_arr))
+
+    A_mat, lam_mat = h5['A'][:], h5['lam'][:]
+
+    # 3: Get target lambda and c from experiments
+    lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
+    lam_exp_arr, A_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr)
+
+    # 4: Get input lambda_0 and c_0 such that output lambda and c yield
+    lam0_arr_input, A0_arr_input = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
+
+    for i, (lam_exp, A_exp) in enumerate(zip(lam_exp_arr, A_exp_arr)):
+
+        lam, A = lam_mat[i, :], A_mat[i, :]
+
+        A_spline, lam_spline = RectBivariateSpline(lam0_arr, c0_arr, A.T), RectBivariateSpline(lam0_arr, c0_arr, lam.T)
+
+        A, lam = A_spline(lam0_arr_refine, c0_arr_refine), lam_spline(lam0_arr_refine, c0_arr_refine)
+        err_lam = np.abs(lam - lam_exp) / lam_exp
+        err_A = np.abs(A - A_exp) / A_exp
+        err = err_lam + err_A
+
+        idx_min = err.argmin()
+        i_min, j_min = np.unravel_index(idx_min, A.shape)
+        lam0_arr_input[i] = lam0_arr_refine[i_min]
+        A0_arr_input[i] = 2 * np.pi * c0_arr_refine[j_min] / lam0_arr_input[i]
+
+    mu_param = {'v_arr': mu_arr, 'round': 6}
+    lam0_param = {'v_arr': lam0_arr_input.tolist(), 'round': 2}
+    A0_param = {'v_arr': A0_arr_input.tolist(), 'round': 2}
+
+    grid_param = {('mu', 'lam', 'A'): (mu_param, lam0_param, A0_param)}
+
+    PG = ParameterGrid(vars(model_param), grid_param)
+
+    #================================================================================================
+    # Run simulation
+    #================================================================================================
+
+    # Decide what to save
+    FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+    if sweep_param.save_to_storage:
+        log_dir, sim_dir, sweep_dir = create_storage_dir()
+    else:
+        from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+    # Experiments are run using the Sweeper class for parallelization
+    if sweep_param.run:
+        Sweeper.run_sweep(
+            sweep_param.worker,
+            PG,
+            UndulationExperiment.stw_control_sequence,
+            FK,
+            log_dir,
+            sim_dir,
+            sweep_param.overwrite,
+            sweep_param.debug,
+            'UExp')
+
+    PG_filepath = PG.save(log_dir)
+    print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'mu_min={round(log_mu_min,1)}_mu_max={round(log_mu_max, 1)}_mu_step={round(log_mu_step,1)}+'
+        f'N={model_param.N}_dt={model_param.dt}_'
+        f'T={model_param.T}.h5')
+
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    # ===============================================================================
+    # Post analysis
+    # ===============================================================================
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.psi = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)
+
+
+
+
+
 
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b'], help='Sweep to run')
+    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b', 'mu_lam_exp_A_exp'], help='Sweep to run')
 
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]
