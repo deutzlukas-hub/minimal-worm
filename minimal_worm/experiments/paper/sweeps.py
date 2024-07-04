@@ -791,6 +791,12 @@ def sweep_mu_lam_A_exp(argv):
     #================================================================================================
 
     mu_arr, f_exp_arr, lam0_input_arr, A0_input_arr = compute_input_waveform()
+
+    log_mu_arr = np.log10(mu_arr)
+
+    log_mu_min, log_mu_max = log_mu_arr.min(), log_mu_arr.max()
+    log_mu_step = log_mu_arr[1] - log_mu_arr[0]
+
     T_c_exp_arr = 1.0 / f_exp_arr
 
     mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
