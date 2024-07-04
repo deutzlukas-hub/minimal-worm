@@ -207,6 +207,56 @@ def default_sweep_parameter():
     return parser
 
 
+#================================================================================================
+# Calculate required input waveform to generate output waveform that matches experimental data
+#================================================================================================
+def compute_input_waveform():
+
+    # Choose preferred wavelength and amplitude such that model yields correct output wavenlength and amplitude
+    h5_filename = 'analysis_mu_min=-3.0_mu_max=1.0_mu_step=0.2_lam_min=0.5_lam_max=2.0_lam_step=0.1_c_min=0.5_c_max=2.0_c_step=0.1_E=5.08_xi=-1.73_N=250_dt=0.01_T=5.0.h5'
+    h5, PG = load_data(h5_filename)
+
+    # 1: Load sweep mu over lambda_0 and c_0
+    mu_arr = PG.v_from_key('mu')
+    log_mu_arr = np.log10(mu_arr)
+    log_mu_min, log_mu_max  = log_mu_arr[0], log_mu_arr[1]
+    log_mu_step = log_mu_max - log_mu_min
+
+    lam0_arr, c0_arr = PG.v_from_key('lam'), PG.v_from_key('c')
+    lam0_arr_refine = np.linspace(lam0_arr.min(), lam0_arr.max(), 100*len(lam0_arr))
+    c0_arr_refine = np.linspace(c0_arr.min(), c0_arr.max(), 100*len(c0_arr))
+
+    A_mat, lam_mat = h5['A'][:], h5['lam'][:]
+
+    # 3: Get target lambda and c from experiments
+    lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
+    lam_exp_arr, A_exp_arr, f_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr), f_sig_fit(log_mu_arr)
+    T_c_exp_arr = 1.0 / f_exp_arr
+
+    # 4: Get input lambda_0 and c_0 such that output lambda and c yield
+    lam0_input_arr, A0_input_arr, f_arr = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
+
+    for i, (lam_exp, A_exp) in enumerate(zip(lam_exp_arr, A_exp_arr)):
+
+        lam, A = lam_mat[i, :], A_mat[i, :]
+
+        A_spline, lam_spline = RectBivariateSpline(lam0_arr, c0_arr, A.T), RectBivariateSpline(lam0_arr, c0_arr, lam.T)
+
+        A, lam = A_spline(lam0_arr_refine, c0_arr_refine), lam_spline(lam0_arr_refine, c0_arr_refine)
+        err_lam = np.abs(lam - lam_exp) / lam_exp
+        err_A = np.abs(A - A_exp) / A_exp
+        err = err_lam + err_A
+
+        idx_min = err.argmin()
+        i_min, j_min = np.unravel_index(idx_min, A.shape)
+        lam0_input = lam0_arr_refine[i_min]
+        c0_input = c0_arr_refine[j_min]
+        lam0_input_arr[i] = lam0_input
+        A0_input_arr[i] =  2 * np.pi * c0_input / lam0_input_arr[i]
+
+    return mu_arr, f_exp_arr, lam0_input_arr, A0_input_arr
+
+
 def sweep_lam0_c0(argv):
     '''
     Sweeps over
@@ -740,52 +790,15 @@ def sweep_mu_lam_A_exp(argv):
     # Parameter Grid
     #================================================================================================
 
-    # Choose preferred wavelength and amplitude such that model yields correct output wavenlength and amplitude
-    h5_filename = 'analysis_mu_min=-3.0_mu_max=1.0_mu_step=0.2_lam_min=0.5_lam_max=2.0_lam_step=0.1_c_min=0.5_c_max=2.0_c_step=0.1_E=5.08_xi=-1.73_N=250_dt=0.01_T=5.0.h5'
-    h5, PG = load_data(h5_filename)
-
-    # 1: Load sweep mu over lambda_0 and c_0
-    mu_arr = PG.v_from_key('mu')
-    log_mu_arr = np.log10(mu_arr)
-    log_mu_min, log_mu_max  = log_mu_arr[0], log_mu_arr[1]
-    log_mu_step = log_mu_max - log_mu_min
-
-    lam0_arr, c0_arr = PG.v_from_key('lam'), PG.v_from_key('c')
-    lam0_arr_refine = np.linspace(lam0_arr.min(), lam0_arr.max(), 100*len(lam0_arr))
-    c0_arr_refine = np.linspace(c0_arr.min(), c0_arr.max(), 100*len(c0_arr))
-
-    A_mat, lam_mat = h5['A'][:], h5['lam'][:]
-
-    # 3: Get target lambda and c from experiments
-    lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
-    lam_exp_arr, A_exp_arr, f_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr), f_sig_fit(log_mu_arr)
+    mu_arr, f_exp_arr, lam0_input_arr, A0_input_arr = compute_input_waveform()
     T_c_exp_arr = 1.0 / f_exp_arr
-
-    # 4: Get input lambda_0 and c_0 such that output lambda and c yield
-    lam0_arr_input, A0_arr_input, f_arr = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
-
-    for i, (lam_exp, A_exp) in enumerate(zip(lam_exp_arr, A_exp_arr)):
-
-        lam, A = lam_mat[i, :], A_mat[i, :]
-
-        A_spline, lam_spline = RectBivariateSpline(lam0_arr, c0_arr, A.T), RectBivariateSpline(lam0_arr, c0_arr, lam.T)
-
-        A, lam = A_spline(lam0_arr_refine, c0_arr_refine), lam_spline(lam0_arr_refine, c0_arr_refine)
-        err_lam = np.abs(lam - lam_exp) / lam_exp
-        err_A = np.abs(A - A_exp) / A_exp
-        err = err_lam + err_A
-
-        idx_min = err.argmin()
-        i_min, j_min = np.unravel_index(idx_min, A.shape)
-        lam0_arr_input[i] = lam0_arr_refine[i_min]
-        A0_arr_input[i] = 2 * np.pi * c0_arr_refine[j_min] / lam0_arr_input[i]
 
     mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
     T_c_param = {'v_arr': T_c_exp_arr.tolist(), 'round': 3, 'quantity': 'second'}
-    lam0_param = {'v_arr': lam0_arr_input.tolist(), 'round': 2}
-    A0_param = {'v_arr': A0_arr_input.tolist(), 'round': 2}
+    lam0_param = {'v_arr': lam0_input_arr.tolist(), 'round': 2}
+    A0_param = {'v_arr': A0_input_arr.tolist(), 'round': 2}
 
-    grid_param = {('mu', 'T_c,' 'lam', 'A'): (mu_param, T_c_param, lam0_param, A0_param)}
+    grid_param = {('mu', 'T_c', 'lam', 'A'): (mu_param, T_c_param, lam0_param, A0_param)}
 
     PG = ParameterGrid(vars(model_param), grid_param)
 
