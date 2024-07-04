@@ -519,38 +519,6 @@ def sweep_a_b(argv):
     c0_input = c0_arr_refine[j_min]
     A0_input = 2 * np.pi * c0_input  / lam0_input
 
-    # TODO: Do this plot
-    # import matplotlib.pyplot as plt
-    #
-    # gs = plt.GridSpec(3,1)
-    # ax0 = plt.subplot(gs[0])
-    # ax1 = plt.subplot(gs[1])
-    #
-    # err_lam = np.abs(lam - lam_exp) / lam_exp
-    #
-    # CS = ax0.contourf(lam0_arr_refine, c0_arr_refine, err_lam.T, cmap = 'plasma')
-    # ax0.contour(lam0_arr_refine, c0_arr_refine, err_lam, colors = 'k')
-    # ax0.plot(lam0_input, c0_input, 'o', c='r')
-    # plt.colorbar(CS, ax=ax0)
-    #
-    # err_A = np.abs(A - A_exp) / A_exp
-    #
-    # CS = ax1.contourf(lam0_arr_refine, c0_arr_refine, err_A.T, cmap = 'plasma')
-    # ax1.contour(lam0_arr_refine, c0_arr_refine, err_A.T, colors = 'k')
-    # ax1.plot(lam0_input, c0_input, 'o', c='r')
-    # plt.colorbar(CS, ax=ax1)
-    #
-    # ax2 = plt.subplot(gs[2])
-    #
-    # err = err_lam + err_A
-    #
-    # CS = ax2.contourf(lam0_arr_refine, c0_arr_refine, np.log10(err.T), cmap = 'cividis')
-    # ax2.contour(lam0_arr_refine, c0_arr_refine, np.log10(err.T), colors = 'k')
-    # ax2.plot(lam0_input, c0_input, 'o', c='r')
-    # plt.colorbar(CS, ax=ax2)
-    #
-    # plt.show()
-
     model_param.lam, model_param.A = lam0_input, A0_input
 
     a_param = {'v_min': a_min, 'v_max': a_max + 0.1 * a_step, 'N': None, 'step': a_step, 'round': 4, 'log': True}
@@ -566,6 +534,8 @@ def sweep_a_b(argv):
 
     # Decide what to save
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
 
     if sweep_param.save_to_storage:
         log_dir, sim_dir, sweep_dir = create_storage_dir()
@@ -587,6 +557,29 @@ def sweep_a_b(argv):
 
     PG_filepath = PG.save(log_dir)
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'mu={round(log_mu, 1)}_'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
+        f'N={model_param.N}_dt={model_param.dt}_'
+        f'T={model_param.T}.h5')
+
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    # ===============================================================================
+    # Post analysis
+    # ===============================================================================
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.psi = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)
 
 
 def sweep_mu_a_b(argv):
@@ -673,6 +666,7 @@ def sweep_mu_a_b(argv):
 
     # Decide what to save
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+    CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
     if sweep_param.save_to_storage:
         log_dir, sim_dir, sweep_dir = create_storage_dir()
@@ -694,6 +688,30 @@ def sweep_mu_a_b(argv):
 
     PG_filepath = PG.save(log_dir)
     print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+    # Pool and save simulation results to hdf5
+    filename = Path(
+        f'raw_data_'
+        f'mu_min={round(log_mu_min,1)}_mu_max={round(log_mu_max, 1)}_mu_step={round(log_mu_step,1)}+'
+        f'a_min={a_min}_a_max={a_max}_a_step={a_step}_'
+        f'b_min={b_min}_b_max={b_max}_b_step={b_step}_'
+        f'N={model_param.N}_dt={model_param.dt}_'
+        f'T={model_param.T}.h5')
+
+    h5_filepath = sweep_dir / filename
+
+    if sweep_param.pool:
+        Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+    # ===============================================================================
+    # Post analysis
+    # ===============================================================================
+    if sweep_param.analyse:
+        sweep_param.A = True
+        sweep_param.lam = True
+        sweep_param.psi = True
+        analyse(h5_filepath, what_to_calculate=sweep_param)
+
 
 if __name__ == '__main__':
 
