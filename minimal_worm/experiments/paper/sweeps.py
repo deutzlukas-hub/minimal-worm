@@ -712,7 +712,7 @@ def sweep_mu_a_b(argv):
         sweep_param.psi = True
         analyse(h5_filepath, what_to_calculate=sweep_param)
 
-def sweep_mu_lam_A_exp():
+def sweep_mu_lam_A_exp(argv):
 
     sweep_parser = default_sweep_parameter()
     sweep_param = sweep_parser.parse_known_args(argv)[0]
@@ -837,10 +837,6 @@ def sweep_mu_lam_A_exp():
         sweep_param.lam = True
         sweep_param.psi = True
         analyse(h5_filepath, what_to_calculate=sweep_param)
-
-
-
-
 
 
 if __name__ == '__main__':
