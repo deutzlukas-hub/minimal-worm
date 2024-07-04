@@ -400,6 +400,7 @@ def sweep_mu_lam0_c0(argv):
     T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}
     mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
 
+
     grid_param = {('T_c', 'mu'): (T_c_param, mu_param), 'c': c_param, 'lam': lam_param}
     PG = ParameterGrid(vars(model_param), grid_param)
 
@@ -759,10 +760,11 @@ def sweep_mu_lam_A_exp(argv):
 
     # 3: Get target lambda and c from experiments
     lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
-    lam_exp_arr, A_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr)
+    lam_exp_arr, A_exp_arr, f_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr), f_sig_fit(log_mu_arr)
+    T_c_arr = 1.0 / f_exp_arr
 
     # 4: Get input lambda_0 and c_0 such that output lambda and c yield
-    lam0_arr_input, A0_arr_input = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
+    lam0_arr_input, A0_arr_input, f_arr = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
 
     for i, (lam_exp, A_exp) in enumerate(zip(lam_exp_arr, A_exp_arr)):
 
@@ -780,11 +782,12 @@ def sweep_mu_lam_A_exp(argv):
         lam0_arr_input[i] = lam0_arr_refine[i_min]
         A0_arr_input[i] = 2 * np.pi * c0_arr_refine[j_min] / lam0_arr_input[i]
 
-    mu_param = {'v_arr': mu_arr, 'round': 6}
+    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}
+    mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
     lam0_param = {'v_arr': lam0_arr_input.tolist(), 'round': 2}
     A0_param = {'v_arr': A0_arr_input.tolist(), 'round': 2}
 
-    grid_param = {('mu', 'lam', 'A'): (mu_param, lam0_param, A0_param)}
+    grid_param = {('mu', 'T_c,' 'lam', 'A'): (mu_param, T_c_param, lam0_param, A0_param)}
 
     PG = ParameterGrid(vars(model_param), grid_param)
 
