@@ -846,7 +846,7 @@ def sweep_mu_lam_A_exp():
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b', 'mu_lam_exp_A_exp'], help='Sweep to run')
+    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b', 'mu_lam_A_exp'], help='Sweep to run')
 
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]
