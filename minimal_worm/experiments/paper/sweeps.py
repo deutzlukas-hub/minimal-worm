@@ -537,7 +537,6 @@ def sweep_a_b(argv):
     FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
     CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
 
-
     if sweep_param.save_to_storage:
         log_dir, sim_dir, sweep_dir = create_storage_dir()
     else:
@@ -718,7 +717,6 @@ def sweep_mu_lam_A_exp(argv):
     sweep_parser = default_sweep_parameter()
     sweep_param = sweep_parser.parse_known_args(argv)[0]
 
-
     model_parser = UndulationExperiment.parameter_parser()
     model_param = model_parser.parse_known_args(argv)[0]
 
@@ -727,8 +725,8 @@ def sweep_mu_lam_A_exp(argv):
     model_param.Ds_t = 0.01
     model_param.s0_h = 0.05
     model_param.s0_t = 0.95
-    model_param.use_c = False
     model_param.T = 5.0
+    model_param.use_c = False
 
     # Set xi
     log_xi = -1.73
@@ -761,7 +759,7 @@ def sweep_mu_lam_A_exp(argv):
     # 3: Get target lambda and c from experiments
     lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
     lam_exp_arr, A_exp_arr, f_exp_arr = lam_sig_fit(log_mu_arr), A_sig_fit(log_mu_arr), f_sig_fit(log_mu_arr)
-    T_c_arr = 1.0 / f_exp_arr
+    T_c_exp_arr = 1.0 / f_exp_arr
 
     # 4: Get input lambda_0 and c_0 such that output lambda and c yield
     lam0_arr_input, A0_arr_input, f_arr = np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr), np.zeros_like(log_mu_arr)
@@ -782,8 +780,8 @@ def sweep_mu_lam_A_exp(argv):
         lam0_arr_input[i] = lam0_arr_refine[i_min]
         A0_arr_input[i] = 2 * np.pi * c0_arr_refine[j_min] / lam0_arr_input[i]
 
-    T_c_param = {'v_arr': T_c_arr.tolist(), 'round': 3, 'quantity': 'second'}
     mu_param = {'v_arr': mu_arr.tolist(), 'round': 6, 'quantity': 'pascal*second'}
+    T_c_param = {'v_arr': T_c_exp_arr.tolist(), 'round': 3, 'quantity': 'second'}
     lam0_param = {'v_arr': lam0_arr_input.tolist(), 'round': 2}
     A0_param = {'v_arr': A0_arr_input.tolist(), 'round': 2}
 
