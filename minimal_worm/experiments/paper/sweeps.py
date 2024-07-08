@@ -673,7 +673,7 @@ def sweep_mu_a_b(argv):
     lam0_arr_refine = np.linspace(lam0_arr.min(), lam0_arr.max(), 100*len(lam0_arr))
     c0_arr_refine = np.linspace(c0_arr.min(), c0_arr.max(), 100*len(c0_arr))
 
-    LAM, A = h5['lam'][:], h5['A'][:]
+    LAM_mat, A_mat = h5['lam'][:], h5['A'][:]
 
     # 3: Get target lambda and c from experiments
     lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
@@ -684,7 +684,7 @@ def sweep_mu_a_b(argv):
 
     for i, (lam_exp, A_exp) in enumerate(zip(lam_exp_arr, A_exp_arr)):
 
-        LAM, A = LAM[i, :], A[i, :]
+        LAM, A = LAM_mat[i, :], A_mat[i, :]
         LAM_spline, A_spline = RectBivariateSpline(lam0_arr, c0_arr, LAM.T), RectBivariateSpline(lam0_arr, c0_arr, A.T)
         LAM, A = LAM_spline(lam0_arr_refine, c0_arr_refine), A_spline(lam0_arr_refine, c0_arr_refine)
         err = np.abs(LAM - lam_exp) / lam_exp + np.abs(A - A_exp) / A_exp
