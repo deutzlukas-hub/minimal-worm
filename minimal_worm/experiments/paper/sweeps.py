@@ -512,7 +512,6 @@ def sweep_mu_lam0_c0(argv):
 
     return
 
-
 def sweep_a_b(argv):
 
     sweep_parser = default_sweep_parameter()
@@ -630,6 +629,135 @@ def sweep_a_b(argv):
         sweep_param.psi = True
         analyse(h5_filepath, what_to_calculate=sweep_param)
 
+def sweep_a_b_mu_loop(argv):
+
+    sweep_parser = default_sweep_parameter()
+    sweep_param = sweep_parser.parse_known_args(argv)[0]
+
+
+    # Choose preferred wavelength and amplitude such that model yields correct output wavenlength and amplitude
+    h5_filename = 'analysis_mu_min=-3.0_mu_max=1.0_mu_step=0.2_lam_min=0.5_lam_max=2.0_lam_step=0.1_c_min=0.5_c_max=2.0_c_step=0.1_E=5.08_xi=-1.73_N=250_dt=0.01_T=5.0.h5'
+    h5, PG = load_data(h5_filename)
+
+    log_mu_arr = np.log10(PG.v_from_key('mu'))
+
+    lam0_arr, c0_arr = PG.v_from_key('lam'), PG.v_from_key('c')
+    lam0_arr_refine = np.linspace(lam0_arr.min(), lam0_arr.max(), 100 * len(lam0_arr))
+    c0_arr_refine = np.linspace(c0_arr.min(), c0_arr.max(), 100 * len(c0_arr))
+
+    #================================================================================================
+    # Model parameter
+    #================================================================================================
+    model_parser = UndulationExperiment.parameter_parser()
+    model_param = model_parser.parse_known_args(argv)[0]
+
+    # Customize parameter
+    model_param.Ds_h = 0.01
+    model_param.Ds_t = 0.01
+    model_param.s0_h = 0.05
+    model_param.s0_t = 0.95
+    model_param.use_c = False
+    model_param.T = 5.0
+
+    for i, log_mu in enumerate(log_mu_arr):
+
+        #1: Get frequency from experimental data
+        lam_sig_fit, f_sig_fit, A_sig_fit = fang_yen_fit()
+        f_exp = f_sig_fit(log_mu)
+
+        mu = 10**log_mu
+        L0, R, E, c_t = model_param.L0.magnitude, model_param.R.magnitude, model_param.E.magnitude, model_param.c_t
+        I = 0.25 * np.pi * R ** 4
+        xi = 10 ** (-1.73)
+        a_exp = mu * c_t * L0 ** 4 / (E * I) * f_exp
+        b_exp = xi * f_exp
+
+        f_over_f_exp_min = 0.1
+        f_over_f_exp_max = 10
+
+        a_min, b_min = f_over_f_exp_min * a_exp, f_over_f_exp_min * b_exp
+        a_max, b_max = f_over_f_exp_max * a_exp, f_over_f_exp_max * b_exp
+
+        log_a_min, log_b_min = np.ceil(np.log10(a_min)), np.ceil(np.log10(b_min))
+        log_a_max, log_b_max = np.ceil(np.log10(a_max)), np.ceil(np.log10(b_max))
+
+        log_a_step, log_b_step = 0.2, 0.2
+
+        # 1: Load sweep mu over lambda_0 and c_0
+        LAM, A = h5['lam'][i, :], h5['A'][i, :]
+        lam_spline, A_spline = RectBivariateSpline(lam0_arr, c0_arr, LAM.T), RectBivariateSpline(lam0_arr, c0_arr, A.T)
+        LAM, A = lam_spline(lam0_arr_refine, c0_arr_refine), A_spline(lam0_arr_refine, c0_arr_refine)
+
+        lam_exp, A_exp = lam_sig_fit(log_mu), A_sig_fit(log_mu)
+        err = np.abs(LAM - lam_exp) / lam_exp + np.abs(A - A_exp)
+        idx_min = err.argmin()
+        i_min, j_min = np.unravel_index(idx_min, A.shape)
+
+        lam0_input = lam0_arr_refine[i_min]
+        c0_input = c0_arr_refine[j_min]
+        A0_input = 2 * np.pi * c0_input  / lam0_input
+
+        model_param.lam, model_param.A = lam0_input, A0_input
+
+        a_param = {'v_min': log_a_min, 'v_max': log_a_max + 0.1 * log_a_step, 'N': None, 'step': log_a_step, 'round': 4, 'log': True}
+        b_param = {'v_min': log_b_min, 'v_max': log_b_max + 0.1 * log_b_step, 'N': None, 'step': log_b_step, 'round': 5, 'log': True}
+
+        grid_param = {'a': a_param, 'b': b_param}
+        PG = ParameterGrid(vars(model_param), grid_param)
+
+        #================================================================================================
+        # Run simulation
+        #================================================================================================
+
+        # Decide what to save
+        FK = [k for k in FRAME_KEYS if getattr(sweep_param, k)]
+        CK = [k for k in CONTROL_KEYS if getattr(sweep_param, k)]
+
+        if sweep_param.save_to_storage:
+            log_dir, sim_dir, sweep_dir = create_storage_dir()
+        else:
+            from minimal_worm.experiments.undulation import sweep_dir, log_dir, sim_dir
+
+        # Experiments are run using the Sweeper class for parallelization
+        if sweep_param.run:
+            Sweeper.run_sweep(
+                sweep_param.worker,
+                PG,
+                UndulationExperiment.stw_control_sequence,
+                FK,
+                log_dir,
+                sim_dir,
+                sweep_param.overwrite,
+                sweep_param.debug,
+                'UExp')
+
+        PG_filepath = PG.save(log_dir)
+        print(f'Finished sweep! Save ParameterGrid to {PG_filepath}')
+
+        # Pool and save simulation results to hdf5
+        filename = Path(
+            f'raw_data_'
+            f'mu={round(log_mu, 1)}'
+            f'a_min={log_a_min}_a_max={log_a_max}_a_step={log_a_step}'
+            f'b_min={log_b_min}_b_max={log_b_max}_b_step={log_b_step}'
+            f'N={model_param.N}_dt={model_param.dt}_'
+            f'T={model_param.T}.h5')
+
+        h5_filepath = sweep_dir / filename
+
+        if sweep_param.pool:
+            Sweeper.save_sweep_to_h5(PG, h5_filepath, sim_dir, FK, CK)
+
+        # ===============================================================================
+        # Post analysis
+        # ===============================================================================
+        if sweep_param.analyse:
+            sweep_param.A = True
+            sweep_param.lam = True
+            sweep_param.psi = True
+            analyse(h5_filepath, what_to_calculate=sweep_param)
+
+    return
 
 def sweep_mu_a_b(argv):
 
@@ -856,7 +984,7 @@ def sweep_mu_lam_A_exp(argv):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b', 'mu_lam_A_exp'], help='Sweep to run')
+    parser.add_argument('--sweep', choices=['lam0_c0', 'mu_lam0_c0', 'a_b', 'mu_a_b', 'mu_lam_A_exp', 'a_b_mu_loop'], help='Sweep to run')
 
     # Run function passed via command line
     args = parser.parse_known_args(argv)[0]
