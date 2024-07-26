@@ -667,7 +667,7 @@ def sweep_a_b_mu_loop(argv):
         mu = 10**log_mu
         model_param.mu = mu*model_param.mu.units
 
-        L0, R, E, c_t = model_param.L0.magnitude, model_param.R.magnitude, model_param.E.magnitude, model_param.c_t
+        L0, R, E, c_t = model_param.L0.magnitude, model_param.R.magnitude, model_param.E.magnitude, model_param.c_t.magnitude
         I = 0.25 * np.pi * R ** 4
         xi = 10 ** (-1.73)
         a_exp = mu * c_t * L0 ** 4 / (E * I) * f_exp
