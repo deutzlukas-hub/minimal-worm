@@ -634,7 +634,6 @@ def sweep_a_b_mu_loop(argv):
     sweep_parser = default_sweep_parameter()
     sweep_param = sweep_parser.parse_known_args(argv)[0]
 
-
     # Choose preferred wavelength and amplitude such that model yields correct output wavenlength and amplitude
     h5_filename = 'analysis_mu_min=-3.0_mu_max=1.0_mu_step=0.2_lam_min=0.5_lam_max=2.0_lam_step=0.1_c_min=0.5_c_max=2.0_c_step=0.1_E=5.08_xi=-1.73_N=250_dt=0.01_T=5.0.h5'
     h5, PG = load_data(h5_filename)
@@ -666,6 +665,8 @@ def sweep_a_b_mu_loop(argv):
         f_exp = f_sig_fit(log_mu)
 
         mu = 10**log_mu
+        model_param.mu = mu*model_param.mu.units
+
         L0, R, E, c_t = model_param.L0.magnitude, model_param.R.magnitude, model_param.E.magnitude, model_param.c_t
         I = 0.25 * np.pi * R ** 4
         xi = 10 ** (-1.73)
@@ -678,7 +679,7 @@ def sweep_a_b_mu_loop(argv):
         a_min, b_min = f_over_f_exp_min * a_exp, f_over_f_exp_min * b_exp
         a_max, b_max = f_over_f_exp_max * a_exp, f_over_f_exp_max * b_exp
 
-        log_a_min, log_b_min = np.ceil(np.log10(a_min)), np.ceil(np.log10(b_min))
+        log_a_min, log_b_min = np.floor(np.log10(a_min)), np.floor(np.log10(b_min))
         log_a_max, log_b_max = np.ceil(np.log10(a_max)), np.ceil(np.log10(b_max))
 
         log_a_step, log_b_step = 0.2, 0.2
