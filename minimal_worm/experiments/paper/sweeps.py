@@ -738,7 +738,7 @@ def sweep_a_b_mu_loop(argv):
         # Pool and save simulation results to hdf5
         filename = Path(
             f'raw_data_'
-            f'mu={round(log_mu, 1)}'
+            f'mu={round(log_mu, 1)}_'
             f'a_min={log_a_min}_a_max={log_a_max}_a_step={log_a_step}'
             f'b_min={log_b_min}_b_max={log_b_max}_b_step={log_b_step}'
             f'N={model_param.N}_dt={model_param.dt}_'
