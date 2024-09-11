@@ -102,7 +102,6 @@ class Sweeper():
                 if exit_status:
                     raise FWException(None, param['T'], param['dt'], FS.times[-1])
 
-
                 result = {}
                 result['pic'] = None
                 
